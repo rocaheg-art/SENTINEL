@@ -4,13 +4,12 @@ const getApiBaseUrl = () => {
   }
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    // Replica local connection behavior on Vercel:
-    // If accessing remotely via sentinel-web-bay.vercel.app, it dynamically resolves
-    // to the visitor's relative hostname or fallback ip at port 8000.
-    if (hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
-      // Connect to the public domain or tunnel at port 8000
-      return `http://${hostname}:8000`;
+    // If running in Render production deployment (e.g. onrender.com)
+    if (hostname.includes("onrender.com") || hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
+      // Connect to the backend hosted on the same domain or sub-root, or resolve via relative route/HTTPS
+      return "https://sentinel-faf0.onrender.com";
     }
+    // Dynamic IP mapping for local network devices (Chrome, Linux, mobile etc)
     return `http://${hostname}:8000`;
   }
   return "http://localhost:8000";

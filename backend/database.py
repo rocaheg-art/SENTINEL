@@ -9,14 +9,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sentinel_db")
 
 class Settings(BaseSettings):
-    DB_HOST: str = "127.0.0.1"
-    DB_PORT: int = 3306
-    DB_USER: str = "root"
-    DB_PASSWORD: str = ""
-    DB_NAME: str = "sentinel_analytics"
+    # Default to cloud PostgreSQL values to avoid local configuration overrides in cloud environments
+    DB_HOST: str = "89.117.148.156"
+    DB_PORT: int = 5433
+    DB_USER: str = "sentinel"
+    DB_PASSWORD: str = "sentinel_local"
+    DB_NAME: str = "sentinel"
     DB_SSL: bool = False
-    SQLITE_DB_PATH: str = "../sentinel_analytics.db"
-    USE_FALLBACK_SQLITE: bool = True
 
     model_config = SettingsConfigDict(
         env_file=str(Path(__file__).parent / ".env"),
@@ -26,76 +25,49 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Build connection strings
+# Force strict production PostgreSQL connection string
 pg_url = f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-mysql_url = f"mysql+aiomysql://{settings.DB_USER}:{settings.DB_PASSWORD}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
 
-# Resolve the absolute path for SQLite
-sqlite_absolute_path = Path(__file__).parent / settings.SQLITE_DB_PATH
-sqlite_url = f"sqlite+aiosqlite:///{sqlite_absolute_path.resolve()}"
-
-# Initialize engine variables
 engine = None
 async_session_maker = None
-db_type = "UNKNOWN"
+db_type = "POSTGRES"
 
 async def init_db():
-    global engine, async_session_maker, db_type
+    global engine, async_session_maker
     
-    # Try PostgreSQL first
+    logger.info(f"Connecting strictly to production PostgreSQL database at {settings.DB_HOST}:{settings.DB_PORT}...")
+    connect_args = {}
+    if settings.DB_SSL:
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        connect_args["ssl"] = ctx
+        logger.info("Enabling SSL context for PostgreSQL.")
+        
     try:
-        logger.info(f"Attempting to connect to PostgreSQL at {settings.DB_HOST}:{settings.DB_PORT}...")
-        connect_args = {}
-        if settings.DB_SSL:
-            import ssl
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            connect_args["ssl"] = ctx
-            logger.info("Enabling SSL context for PostgreSQL.")
-            
         temp_engine = create_async_engine(
             pg_url, 
             echo=False, 
             connect_args=connect_args,
             pool_pre_ping=True,
             pool_recycle=300,
-            pool_size=10,
-            max_overflow=20
+            pool_size=15,
+            max_overflow=25
         )
+        # Test connection strictly. If it fails, raise the exception immediately.
         async with temp_engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
+        
         from models import Base
         async with temp_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            
         engine = temp_engine
-        db_type = "POSTGRES"
-        logger.info("Successfully connected to PostgreSQL database.")
-    except Exception as pg_err:
-        logger.warning(f"PostgreSQL connection failed: {pg_err}. Trying MySQL...")
-        # Try MySQL
-        try:
-            temp_engine = create_async_engine(mysql_url, echo=False)
-            async with temp_engine.connect() as conn:
-                await conn.execute(text("SELECT 1"))
-            from models import Base
-            async with temp_engine.begin() as conn:
-                await conn.run_sync(Base.metadata.create_all)
-            engine = temp_engine
-            db_type = "MYSQL"
-            logger.info("Successfully connected to MySQL database.")
-        except Exception as mysql_err:
-            logger.warning(f"MySQL connection failed: {mysql_err}")
-            if settings.USE_FALLBACK_SQLITE:
-                logger.info(f"Falling back to SQLite database at {sqlite_absolute_path.resolve()}...")
-                temp_engine = create_async_engine(sqlite_url, echo=False)
-                from models import Base
-                async with temp_engine.begin() as conn:
-                    await conn.run_sync(Base.metadata.create_all)
-                engine = temp_engine
-                db_type = "SQLITE"
-            else:
-                raise mysql_err
+        logger.info("Strict database initialization complete. Connected to cloud PostgreSQL.")
+    except Exception as e:
+        logger.error(f"FATAL: Failed to connect to cloud PostgreSQL database: {e}")
+        raise e
 
     async_session_maker = async_sessionmaker(
         bind=engine,

@@ -88,13 +88,13 @@ interface IntelData {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const getApiBase = () => {
-  if (process.env.NEXT_PUBLIC_API_BASE) {
-    return process.env.NEXT_PUBLIC_API_BASE;
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
   }
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    if (hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
-      return `http://${hostname}:8000`;
+    if (hostname.includes("onrender.com") || hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
+      return "https://sentinel-faf0.onrender.com";
     }
     return `http://${hostname}:8000`;
   }
