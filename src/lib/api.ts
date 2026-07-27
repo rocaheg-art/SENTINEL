@@ -4,12 +4,12 @@ const getApiBaseUrl = () => {
   }
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    // If running in Render production deployment (e.g. onrender.com)
+    // If running in Render/Vercel production deployment
     if (hostname.includes("onrender.com") || hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
-      // Connect to the backend hosted on the same domain or sub-root, or resolve via relative route/HTTPS
-      return "https://sentinel-faf0.onrender.com";
+      // Connect to the external VPS Python backend API
+      return "http://217.77.2.96";
     }
-    // Dynamic IP mapping for local network devices (Chrome, Linux, mobile etc)
+    // Dynamic IP mapping for local network devices
     return `http://${hostname}:8000`;
   }
   return "http://localhost:8000";
