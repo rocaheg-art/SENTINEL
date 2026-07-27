@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+{% block titulo %}Jerarquía{% endblock %}
+{% block contenido %}
+
+<div class="page-header">
+    <div class="page-title"><i class="bi bi-diagram-3" style="color:var(--blue)"></i> Jerarquía</div>
+    <div class="page-subtitle">Gestión de categorías raíz, subcategorías y tipos específicos con código automático.</div>
+</div>
+
+{% with mensajes = get_flashed_messages(with_categories=true) %}
+  {% if mensajes %}
+    {% for categoria, mensaje in mensajes %}
+      <div class="alert-{{ 'success' if categoria == 'success' else 'error' }}">{{ mensaje }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card stat-blue"><div class="stat-number" style="color:var(--blue)">{{ metricas_taxonomia.categorias }}</div><div class="stat-label">Categorías raíz</div><div class="stat-icon"><i class="bi bi-folder"></i></div></div></div>
+    <div class="col-md-3"><div class="stat-card stat-green"><div class="stat-number" style="color:var(--green)">{{ metricas_taxonomia.subcategorias }}</div><div class="stat-label">Subcategorías</div><div class="stat-icon"><i class="bi bi-folder2"></i></div></div></div>
+    <div class="col-md-3"><div class="stat-card stat-purple"><div class="stat-number" style="color:var(--purple)">{{ metricas_taxonomia.tipos }}</div><div class="stat-label">Tipos específicos</div><div class="stat-icon"><i class="bi bi-tags"></i></div></div></div>
+    <div class="col-md-3"><div class="stat-card stat-yellow"><div class="stat-number" style="color:var(--yellow)">{{ metricas_taxonomia.total_elementos }}</div><div class="stat-label">Elementos totales</div><div class="stat-icon"><i class="bi bi-diagram-3"></i></div></div></div>
+</div>
+
+<div class="card-sentinel p-4 mb-4">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div>
+            <h5 style="margin:0; color:var(--text-main)">Código automático</h5>
+            <div style="font-size:13px; color:var(--text-muted)">
+                El código se calcula con base en el último registro existente. Ejemplo: 10 → 11, 1.7 → 1.8, 1.4.8 → 1.4.9.
+            </div>
+        </div>
+        <a class="btn-primary-s" href="{{ url_for('taxonomia_explorador') }}"><i class="bi bi-diagram-2"></i> Abrir explorador</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card-sentinel p-4 h-100">
+            <h5 style="color:var(--blue)"><i class="bi bi-folder"></i> Categoría raíz</h5>
+            <form method="POST" action="{{ url_for('taxonomia_guardar') }}" class="mt-3">
+                <input type="hidden" name="nivel" value="1">
+                {% if editar and editar.nivel == 1 %}<input type="hidden" name="id_categoria" value="{{ editar.id }}">{% endif %}
+
+                <label class="form-label-s">Código automático</label>
+                <input class="input-s mb-1" id="codigo_n1" name="codigo" value="{{ editar.codigo if editar and editar.nivel == 1 else sug_cat }}" readonly>
+                <div class="mb-3" style="font-size:12px; color:var(--text-muted)">Este código no se captura manualmente; el sistema lo valida antes de guardar.</div>
+
+                <label class="form-label-s">Nombre</label>
+                <input class="input-s mb-3" name="nombre" required value="{{ editar.nombre if editar and editar.nivel == 1 else '' }}">
+
+                <label class="form-label-s">Descripción</label>
+                <textarea class="input-s mb-3" name="descripcion" rows="3">{{ editar.descripcion if editar and editar.nivel == 1 and editar.descripcion else '' }}</textarea>
+
+                <button class="btn-success-s" type="submit"><i class="bi bi-save"></i> {{ 'Actualizar' if editar and editar.nivel == 1 else 'Crear categoría' }}</button>
+                {% if editar and editar.nivel == 1 %}<a class="btn-outline-s ms-2" href="{{ url_for('taxonomia_admin') }}">Cancelar</a>{% endif %}
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-sentinel p-4 h-100">
+            <h5 style="color:var(--green)"><i class="bi bi-folder2"></i> Subcategoría</h5>
+            <form method="POST" action="{{ url_for('taxonomia_guardar') }}" class="mt-3">
+                <input type="hidden" name="nivel" value="2">
+                {% if editar and editar.nivel == 2 %}<input type="hidden" id="editar_n2_id" name="id_categoria" value="{{ editar.id }}">{% endif %}
+
+                <label class="form-label-s">Categoría padre</label>
+                <select class="input-s mb-3" id="padre_n2" name="id_padre" required data-nivel="2" data-codigo-target="codigo_n2" data-excluir-id="{{ editar.id if editar and editar.nivel == 2 else '' }}">
+                    <option value="">Selecciona...</option>
+                    {% for c in categorias %}
+                        <option value="{{ c.id }}" {% if editar and editar.nivel == 2 and editar.id_padre == c.id %}selected{% endif %}>{{ c.codigo }} — {{ c.nombre }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="form-label-s">Código automático</label>
+                <input class="input-s mb-1" id="codigo_n2" name="codigo" value="{{ editar.codigo if editar and editar.nivel == 2 else sug_sub }}" readonly>
+                <div class="mb-3" style="font-size:12px; color:var(--text-muted)">Al cambiar el padre se calcula el siguiente código de esa categoría.</div>
+
+                <label class="form-label-s">Nombre</label>
+                <input class="input-s mb-3" name="nombre" required value="{{ editar.nombre if editar and editar.nivel == 2 else '' }}">
+
+                <label class="form-label-s">Descripción</label>
+                <textarea class="input-s mb-3" name="descripcion" rows="3">{{ editar.descripcion if editar and editar.nivel == 2 and editar.descripcion else '' }}</textarea>
+
+                <button class="btn-success-s" type="submit"><i class="bi bi-save"></i> {{ 'Actualizar' if editar and editar.nivel == 2 else 'Crear subcategoría' }}</button>
+                {% if editar and editar.nivel == 2 %}<a class="btn-outline-s ms-2" href="{{ url_for('taxonomia_admin') }}">Cancelar</a>{% endif %}
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-sentinel p-4 h-100">
+            <h5 style="color:var(--purple)"><i class="bi bi-tag"></i> Tipo específico</h5>
+            <form method="POST" action="{{ url_for('taxonomia_guardar') }}" class="mt-3">
+                <input type="hidden" name="nivel" value="3">
+                {% if editar and editar.nivel == 3 %}<input type="hidden" id="editar_n3_id" name="id_categoria" value="{{ editar.id }}">{% endif %}
+
+                <label class="form-label-s">Subcategoría padre</label>
+                <select class="input-s mb-3" id="padre_n3" name="id_padre" required data-nivel="3" data-codigo-target="codigo_n3" data-excluir-id="{{ editar.id if editar and editar.nivel == 3 else '' }}">
+                    <option value="">Selecciona...</option>
+                    {% for s in subcategorias %}
+                        <option value="{{ s.id }}" {% if editar and editar.nivel == 3 and editar.id_padre == s.id %}selected{% endif %}>{{ s.codigo }} — {{ s.nombre }} ({{ s.categoria_nombre }})</option>
+                    {% endfor %}
+                </select>
+
+                <label class="form-label-s">Código automático</label>
+                <input class="input-s mb-1" id="codigo_n3" name="codigo" value="{{ editar.codigo if editar and editar.nivel == 3 else sug_tipo }}" readonly>
+                <div class="mb-3" style="font-size:12px; color:var(--text-muted)">Al cambiar la subcategoría padre se calcula el siguiente tipo específico.</div>
+
+                <label class="form-label-s">Nombre</label>
+                <input class="input-s mb-3" name="nombre" required value="{{ editar.nombre if editar and editar.nivel == 3 else '' }}">
+
+                <label class="form-label-s">Descripción</label>
+                <textarea class="input-s mb-2" name="descripcion" rows="2">{{ editar.descripcion if editar and editar.nivel == 3 and editar.descripcion else '' }}</textarea>
+
+                <label class="form-label-s">Palabras clave</label>
+                <textarea class="input-s mb-3" name="palabras_clave" rows="2">{{ editar.palabras_clave if editar and editar.nivel == 3 and editar.palabras_clave else '' }}</textarea>
+
+                <button class="btn-success-s" type="submit"><i class="bi bi-save"></i> {{ 'Actualizar' if editar and editar.nivel == 3 else 'Crear tipo' }}</button>
+                {% if editar and editar.nivel == 3 %}<a class="btn-outline-s ms-2" href="{{ url_for('taxonomia_admin') }}">Cancelar</a>{% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+{% macro acciones(id, activa) -%}
+<a class="btn-sm-edit" href="{{ url_for('taxonomia_admin', editar=id) }}">Editar</a>
+<a class="btn-sm-ver" href="{{ url_for('taxonomia_toggle', id_categoria=id) }}">{{ 'Desactivar' if activa else 'Activar' }}</a>
+<a class="btn-sm-del" onclick="return confirm('¿Eliminar o desactivar este elemento?')" href="{{ url_for('taxonomia_eliminar', id_categoria=id) }}">Eliminar</a>
+{%- endmacro %}
+
+<div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="tabla-container">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
+                <strong><i class="bi bi-folder" style="color:var(--blue)"></i> Categorías raíz</strong>
+                <span style="font-size:12px; color:var(--text-muted)">{{ categorias|length }} registros</span>
+            </div>
+            <table>
+                <thead><tr><th>Código</th><th>Nombre</th><th>Fuentes</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    {% for c in categorias %}
+                    <tr><td><strong>{{ c.codigo }}</strong></td><td>{{ c.nombre }}</td><td>{{ c.total_fuentes }}</td><td>{{ 'Activo' if c.activa else 'Inactivo' }}</td><td>{{ acciones(c.id, c.activa) }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="tabla-container">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
+                <strong><i class="bi bi-folder2" style="color:var(--green)"></i> Subcategorías</strong>
+                <span style="font-size:12px; color:var(--text-muted)">{{ subcategorias|length }} registros</span>
+            </div>
+            <table>
+                <thead><tr><th>Código</th><th>Nombre</th><th>Categoría padre</th><th>Fuentes</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    {% for s in subcategorias %}
+                    <tr><td><strong>{{ s.codigo }}</strong></td><td>{{ s.nombre }}</td><td>{{ s.categoria_nombre }}</td><td>{{ s.total_fuentes }}</td><td>{{ 'Activo' if s.activa else 'Inactivo' }}</td><td>{{ acciones(s.id, s.activa) }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="tabla-container">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
+                <strong><i class="bi bi-tags" style="color:var(--purple)"></i> Tipos específicos</strong>
+                <span style="font-size:12px; color:var(--text-muted)">{{ tipos|length }} registros</span>
+            </div>
+            <table>
+                <thead><tr><th>Código</th><th>Nombre</th><th>Subcategoría</th><th>Categoría</th><th>Fuentes</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>
+                    {% for t in tipos %}
+                    <tr><td><strong>{{ t.codigo }}</strong></td><td>{{ t.nombre }}</td><td>{{ t.subcategoria_nombre }}</td><td>{{ t.categoria_nombre }}</td><td>{{ t.total_fuentes }}</td><td>{{ 'Activo' if t.activa else 'Inactivo' }}</td><td>{{ acciones(t.id, t.activa) }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function actualizarCodigo(selectElement) {
+    const padreId = selectElement.value;
+    const nivel = selectElement.dataset.nivel;
+    const targetId = selectElement.dataset.codigoTarget;
+    const excluirId = selectElement.dataset.excluirId || '';
+    const target = document.getElementById(targetId);
+
+    if (!target) return;
+    if (!padreId) {
+        target.value = '';
+        return;
+    }
+
+    const params = new URLSearchParams({ nivel: nivel, padre_id: padreId });
+    if (excluirId) params.append('excluir_id', excluirId);
+
+    try {
+        const resp = await fetch(`/api/taxonomia/sugerir_codigo?${params.toString()}`);
+        const data = await resp.json();
+        if (data.success) {
+            target.value = data.codigoSugerido || '';
+        }
+    } catch (error) {
+        console.error('No se pudo calcular el código:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const n2 = document.getElementById('padre_n2');
+    const n3 = document.getElementById('padre_n3');
+    if (n2) n2.addEventListener('change', () => actualizarCodigo(n2));
+    if (n3) n3.addEventListener('change', () => actualizarCodigo(n3));
+});
+</script>
+
+{% endblock %}

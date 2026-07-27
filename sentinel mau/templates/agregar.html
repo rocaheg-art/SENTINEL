@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% block titulo %}Agregar página{% endblock %}
+
+{% block contenido %}
+<div class="page-header">
+    <div class="page-title"><i class="bi bi-plus-circle" style="color:var(--green)"></i> Registrar nueva página</div>
+    <div class="page-subtitle">Agrega una nueva fuente oficial al sistema SENTINEL</div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in messages %}
+        <div class="{% if categoria == 'error' %}alert-error{% else %}alert-success{% endif %}">
+            {{ mensaje }}
+        </div>
+    {% endfor %}
+{% endwith %}
+
+<div class="form-card" style="max-width:800px;">
+    <form method="POST" action="/agregar" id="formAgregar">
+
+        <!-- Sección 1: Información básica -->
+        <div style="border-bottom:1px solid var(--border); margin-bottom:20px; padding-bottom:8px;">
+            <span style="font-size:12px; color:var(--blue); text-transform:uppercase; letter-spacing:1px;">
+                <i class="bi bi-info-circle"></i> Información básica
+            </span>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-8">
+                <label class="form-label-s">Nombre de la página / sitio *</label>
+                <input type="text" name="nombre" class="input-s" placeholder="Ej: Gobierno de Querétaro" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label-s">Tipo de fuente</label>
+                <select name="tipo_fuente" class="input-s">
+                    <option value="">-- Selecciona --</option>
+                    <option>Gobierno</option>
+                    <option>Medio informativo</option>
+                    <option>Comunidad</option>
+                    <option>Figura pública</option>
+                    <option>Emergencias</option>
+                    <option>Organización civil</option>
+                    <option>Otro</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label-s"><i class="bi bi-globe"></i> URL del sitio web</label>
+                <input type="text" name="url_web" class="input-s" placeholder="https://www.ejemplo.com">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label-s"><i class="bi bi-facebook"></i> URL de Facebook *</label>
+                <input type="text" name="url_facebook" class="input-s" placeholder="https://www.facebook.com/..." required>
+            </div>
+        </div>
+
+        <!-- Sección 2: Ubicación -->
+        <div style="border-bottom:1px solid var(--border); margin-bottom:20px; padding-bottom:8px; margin-top:24px;">
+            <span style="font-size:12px; color:var(--yellow); text-transform:uppercase; letter-spacing:1px;">
+                <i class="bi bi-geo-alt"></i> Ubicación
+            </span>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <label class="form-label-s">Municipio</label>
+                <input type="text" name="municipio" class="input-s" placeholder="Ej: Querétaro">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label-s">Estado</label>
+                <input type="text" name="estado" class="input-s" value="Querétaro">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label-s">País</label>
+                <input type="text" name="pais" class="input-s" value="México">
+            </div>
+        </div>
+
+        <!-- Sección 3: Categorización jerárquica -->
+        <div style="border-bottom:1px solid var(--border); margin-bottom:20px; padding-bottom:8px; margin-top:24px;">
+            <span style="font-size:12px; color:var(--purple); text-transform:uppercase; letter-spacing:1px;">
+                <i class="bi bi-diagram-3"></i> Clasificación
+            </span>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <label class="form-label-s">Categoría raíz *</label>
+                <select id="sel_n1" name="sel_n1" class="input-s" onchange="cargarN2()">
+                    <option value="">-- Selecciona --</option>
+                    {% for cat in nivel1 %}
+                        <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label-s">Subcategoría</label>
+                <select id="sel_n2" name="sel_n2" class="input-s" onchange="cargarN3()" disabled>
+                    <option value="">-- Primero selecciona raíz --</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label-s">Tipo específico</label>
+                <select id="sel_n3" name="sel_n3" class="input-s" disabled>
+                    <option value="">-- Primero selecciona subcategoría --</option>
+                </select>
+            </div>
+        </div>
+        <input type="hidden" name="cat_final" id="cat_final">
+
+        <!-- Sección 4: Validación -->
+        <div style="border-bottom:1px solid var(--border); margin-bottom:20px; padding-bottom:8px; margin-top:24px;">
+            <span style="font-size:12px; color:var(--green); text-transform:uppercase; letter-spacing:1px;">
+                <i class="bi bi-check-circle"></i> Validación
+            </span>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-4">
+                <label class="form-label-s">Estado de validación</label>
+                <select name="estado_validacion" class="input-s">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="validado">Validado</option>
+                    <option value="rechazado">Rechazado</option>
+                </select>
+            </div>
+            <div class="col-md-8 d-flex align-items-end gap-4 pb-1">
+                <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" name="enlace_valido" checked style="width:16px; height:16px; accent-color:var(--green);"> Enlace válido
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" name="pagina_activa" checked style="width:16px; height:16px; accent-color:var(--blue);"> Página activa
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" name="duplicado" style="width:16px; height:16px; accent-color:var(--red);"> Duplicado
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label-s">Observaciones</label>
+            <textarea name="observaciones" class="input-s" rows="3" placeholder="Notas adicionales sobre esta fuente..."></textarea>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn-success-s" onclick="prepararEnvio()">
+                <i class="bi bi-check-lg"></i> Registrar página
+            </button>
+            <a href="/" class="btn-outline-s"><i class="bi bi-arrow-left"></i> Volver</a>
+        </div>
+
+    </form>
+</div>
+
+<script>
+const nivel2Map = {};
+const nivel3Map = {};
+
+{% for cat in nivel2 %}
+if (!nivel2Map["{{ cat.id_padre }}"]) nivel2Map["{{ cat.id_padre }}"] = [];
+nivel2Map["{{ cat.id_padre }}"].push({id: "{{ cat.id }}", nombre: "{{ cat.nombre }}"});
+{% endfor %}
+
+{% for cat in nivel3 %}
+if (!nivel3Map["{{ cat.id_padre }}"]) nivel3Map["{{ cat.id_padre }}"] = [];
+nivel3Map["{{ cat.id_padre }}"].push({id: "{{ cat.id }}", nombre: "{{ cat.nombre }}"});
+{% endfor %}
+
+function cargarN2() {
+    const id = document.getElementById('sel_n1').value;
+    const sel2 = document.getElementById('sel_n2');
+    const sel3 = document.getElementById('sel_n3');
+    sel2.innerHTML = '<option value="">-- Selecciona subcategoría --</option>';
+    sel3.innerHTML = '<option value="">-- Selecciona tipo --</option>';
+    sel3.disabled = true;
+    document.getElementById('cat_final').value = id;
+
+    if (!id) { sel2.disabled = true; return; }
+    const hijos = nivel2Map[id];
+    if (hijos && hijos.length > 0) {
+        hijos.forEach(c => sel2.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
+        sel2.disabled = false;
+    } else {
+        sel2.disabled = true;
+    }
+}
+
+function cargarN3() {
+    const id = document.getElementById('sel_n2').value;
+    const sel3 = document.getElementById('sel_n3');
+    sel3.innerHTML = '<option value="">-- Selecciona tipo --</option>';
+    document.getElementById('cat_final').value = id;
+
+    if (!id) { sel3.disabled = true; return; }
+    const hijos = nivel3Map[id];
+    if (hijos && hijos.length > 0) {
+        hijos.forEach(c => sel3.innerHTML += `<option value="${c.id}">${c.nombre}</option>`);
+        sel3.disabled = false;
+    } else {
+        sel3.disabled = true;
+    }
+}
+
+function prepararEnvio() {
+    const n3 = document.getElementById('sel_n3').value;
+    const n2 = document.getElementById('sel_n2').value;
+    const n1 = document.getElementById('sel_n1').value;
+    document.getElementById('cat_final').value = n3 || n2 || n1;
+}
+</script>
+{% endblock %}

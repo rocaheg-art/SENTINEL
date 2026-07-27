@@ -1,0 +1,434 @@
+{% extends 'base.html' %}
+{% block titulo %}Jerarquía de categorías{% endblock %}
+
+{% block contenido %}
+
+<!-- Estilos propios del sistema de Diana adaptados a SENTINEL -->
+<style>
+    .jerar-header {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 24px;
+    }
+    .jerar-layout {
+        display: flex; gap: 16px; height: calc(100vh - 220px);
+    }
+    .jerar-sidebar {
+        width: 240px; background: #161b22;
+        border: 1px solid #30363d; border-radius: 12px;
+        padding: 12px; overflow-y: auto; flex-shrink: 0;
+    }
+    .jerar-panel {
+        flex: 1; background: #161b22;
+        border: 1px solid #30363d; border-radius: 12px;
+        padding: 16px; overflow-y: auto;
+    }
+    .jerar-detalle {
+        width: 280px; background: #161b22;
+        border: 1px solid #30363d; border-radius: 12px;
+        padding: 16px; overflow-y: auto; flex-shrink: 0;
+    }
+    .jerar-panel h2, .jerar-detalle h2 {
+        font-size: 15px; color: #8b949e;
+        margin-bottom: 16px; font-weight: 500;
+    }
+    /* Categorías raíz */
+    .cat-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px; margin-bottom: 6px;
+        border-radius: 8px; cursor: pointer;
+        background: #21262d; color: #c9d1d9;
+        font-size: 13px; transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .cat-item:hover { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+    .cat-item.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+    .cat-icon { font-size: 18px; }
+    /* Cards subcategorías y tipos */
+    .sub-card {
+        background: #21262d; border: 1px solid #30363d;
+        border-radius: 10px; padding: 12px 14px;
+        margin-bottom: 10px; cursor: pointer;
+        transition: all 0.2s; border-left: 3px solid #58a6ff;
+    }
+    .sub-card:hover { background: #1c2128; transform: translateX(4px); border-left-color: #3fb950; }
+    .sub-card.active { background: #1a3a2a; border-left-color: #3fb950; }
+    .sub-card b { font-size: 13px; color: #c9d1d9; }
+    .sub-card small { font-size: 11px; color: #8b949e; }
+    .tipo-card {
+        background: #21262d; border: 1px solid #30363d;
+        border-radius: 8px; padding: 10px 12px;
+        margin-bottom: 8px; cursor: pointer;
+        font-size: 12px; color: #c9d1d9; transition: all 0.2s;
+    }
+    .tipo-card:hover { background: #1f3a5f; color: #58a6ff; }
+    /* Detalle */
+    .detalle-campo {
+        background: #21262d; border-radius: 8px;
+        padding: 12px; margin-bottom: 10px;
+    }
+    .detalle-label { font-size: 11px; color: #8b949e; margin-bottom: 4px; }
+    .detalle-valor { font-size: 14px; font-weight: 600; color: #c9d1d9; }
+    /* Buscador */
+    .jerar-search {
+        background: #21262d; border: 1px solid #30363d;
+        border-radius: 8px; padding: 8px 14px;
+        color: #c9d1d9; font-size: 13px; width: 260px;
+    }
+    .jerar-search:focus { outline: none; border-color: #58a6ff; }
+    .jerar-search::placeholder { color: #484f58; }
+    /* Botón mapa */
+    .btn-mapa {
+        background: linear-gradient(135deg, #1f6feb, #58a6ff);
+        border: none; color: white; padding: 8px 18px;
+        border-radius: 8px; cursor: pointer; font-size: 13px;
+        transition: all 0.2s;
+    }
+    .btn-mapa:hover { transform: scale(1.05); }
+    /* Modal mapa */
+    #modalMapa {
+        display: none; position: fixed; inset: 0;
+        background: #0d1117; z-index: 9999;
+    }
+    #cerrarMapa {
+        position: absolute; top: 16px; right: 16px;
+        background: #21262d; border: 1px solid #30363d;
+        color: #c9d1d9; padding: 8px 14px; border-radius: 8px;
+        cursor: pointer; font-size: 13px; z-index: 10000;
+    }
+    #cerrarMapa:hover { background: #f85149; color: white; }
+    #mapaContainer { width: 100%; height: 100%; overflow: hidden; }
+    #panelInfoMapa {
+        position: absolute; top: 16px; left: 16px;
+        width: 260px; background: #161b22;
+        border: 1px solid #30363d; border-radius: 12px;
+        padding: 20px; z-index: 10000;
+    }
+    #panelInfoMapa h2 { font-size: 15px; color: #c9d1d9; margin-bottom: 12px; }
+    .infoCampo { background: #21262d; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+    .infoTitulo { font-size: 11px; color: #8b949e; margin-bottom: 4px; }
+    .infoValor { font-size: 14px; font-weight: 600; color: #58a6ff; }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+    /* Badge contador */
+    .count-badge {
+        background: #1f3a5f; color: #58a6ff;
+        border-radius: 20px; padding: 2px 8px; font-size: 11px; margin-left: auto;
+    }
+</style>
+
+<div class="jerar-header">
+    <div>
+        <div class="page-title"><i class="bi bi-diagram-3" style="color:var(--purple)"></i> Jerarquía de Categorías</div>
+        <div class="page-subtitle">Sistema de clasificación de fuentes SENTINEL</div>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <input id="busqueda" class="jerar-search" placeholder="🔍 Buscar categoría o tipo...">
+        <button class="btn-mapa" id="btnMapa">🧠 Ver mapa</button>
+    </div>
+</div>
+
+<div class="jerar-layout">
+
+    <!-- Columna 1: Categorías raíz -->
+    <div class="jerar-sidebar" id="colCategorias">
+        <div style="font-size:11px; color:#8b949e; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Categorías</div>
+    </div>
+
+    <!-- Columna 2: Subcategorías -->
+    <div class="jerar-panel" id="colSubcategorias">
+        <h2>Selecciona una categoría</h2>
+    </div>
+
+    <!-- Columna 3: Tipos específicos / detalle -->
+    <div class="jerar-detalle" id="colDetalle">
+        <h2>Selecciona una subcategoría</h2>
+    </div>
+
+</div>
+
+<!-- Modal Mapa -->
+<div id="modalMapa">
+    <button id="cerrarMapa">✖ Cerrar</button>
+    <div id="mapaContainer"></div>
+    <div id="panelInfoMapa">
+        <h2><i class="bi bi-info-circle"></i> Detalle</h2>
+        <div id="contenidoInfoMapa" style="color:#8b949e; font-size:13px;">Haz clic en un nodo</div>
+    </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+// ── Datos desde Flask ──
+const datosRaw = [
+    {% for d in datos %}
+    {% if d.tipo_especifico %}
+    {
+        Categoria_Principa: "{{ d.categoria_raiz | e }}",
+        Subcategoria: "{{ d.subcategoria | e }}",
+        Elemento: "{{ d.tipo_especifico | e }}",
+        Codigo: {{ d.codigo }}
+    },
+    {% endif %}
+    {% endfor %}
+];
+
+// Íconos por categoría
+function getIcon(cat) {
+    const icons = {
+        "Gobierno": "🏛️", "Medio Informativo": "📰",
+        "Comunidad": "👥", "Seguridad": "🔒",
+        "Emergencias": "🚨", "Educación": "🎓",
+        "Salud": "🏥", "Deporte": "⚽",
+        "Economía": "💼", "Cultura": "🎭"
+    };
+    return icons[cat] || "📁";
+}
+
+let datosGlobal = [...datosRaw];
+
+// ── Render categorías ──
+function renderCategorias(data) {
+    const cont = document.getElementById("colCategorias");
+    const header = cont.querySelector('div');
+    cont.innerHTML = '';
+    cont.appendChild(header);
+
+    const cats = [...new Set(data.map(x => x.Categoria_Principa))];
+    cats.forEach(c => {
+        const total = data.filter(x => x.Categoria_Principa === c).length;
+        const div = document.createElement("div");
+        div.className = "cat-item";
+        div.innerHTML = `
+            <span class="cat-icon">${getIcon(c)}</span>
+            <span style="flex:1">${c}</span>
+            <span class="count-badge">${total}</span>
+        `;
+        div.onclick = () => {
+            document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
+            div.classList.add('active');
+            renderSubcategorias(c, data);
+        };
+        cont.appendChild(div);
+    });
+}
+
+// ── Render subcategorías ──
+function renderSubcategorias(cat, data) {
+    const filtrados = data.filter(x => x.Categoria_Principa === cat);
+    const subs = [...new Set(filtrados.map(x => x.Subcategoria))];
+    const cont = document.getElementById("colSubcategorias");
+    cont.innerHTML = `<h2>${getIcon(cat)} ${cat} <span style="font-size:12px; color:#8b949e;">(${filtrados.length} elementos)</span></h2>`;
+
+    subs.forEach(s => {
+        const total = filtrados.filter(x => x.Subcategoria === s).length;
+        const div = document.createElement("div");
+        div.className = "sub-card";
+        div.innerHTML = `<b>${s}</b><br><small>${total} tipos específicos</small>`;
+        div.onclick = () => {
+            document.querySelectorAll('.sub-card').forEach(el => el.classList.remove('active'));
+            div.classList.add('active');
+            renderTipos(cat, s, data);
+        };
+        cont.appendChild(div);
+    });
+
+    document.getElementById("colDetalle").innerHTML = '<h2>Selecciona una subcategoría</h2>';
+}
+
+// ── Render tipos específicos ──
+function renderTipos(cat, sub, data) {
+    const items = data.filter(x => x.Categoria_Principa === cat && x.Subcategoria === sub);
+    const cont = document.getElementById("colDetalle");
+    cont.innerHTML = `<h2>📋 ${sub}</h2>`;
+
+    items.forEach(i => {
+        const div = document.createElement("div");
+        div.className = "tipo-card";
+        div.innerHTML = `<i class="bi bi-dot" style="color:#58a6ff"></i> ${i.Elemento}`;
+        div.onclick = () => mostrarDetalle(i);
+        cont.appendChild(div);
+    });
+}
+
+// ── Mostrar detalle ──
+function mostrarDetalle(item) {
+    const cont = document.getElementById("colDetalle");
+    const titulo = cont.querySelector('h2');
+    // Quitar selección anterior
+    document.querySelectorAll('.tipo-card').forEach(el => el.style.background = '');
+
+    const detalleDiv = document.getElementById('detalle-info') || document.createElement('div');
+    detalleDiv.id = 'detalle-info';
+    detalleDiv.innerHTML = `
+        <div style="margin-top:16px; border-top:1px solid #30363d; padding-top:16px;">
+            <div class="detalle-campo">
+                <div class="detalle-label">Tipo específico</div>
+                <div class="detalle-valor" style="color:#58a6ff">${item.Elemento}</div>
+            </div>
+            <div class="detalle-campo">
+                <div class="detalle-label">Subcategoría</div>
+                <div class="detalle-valor">${item.Subcategoria}</div>
+            </div>
+            <div class="detalle-campo">
+                <div class="detalle-label">Categoría raíz</div>
+                <div class="detalle-valor">${item.Categoria_Principa}</div>
+            </div>
+            <div class="detalle-campo">
+                <div class="detalle-label">ID en base de datos</div>
+                <div class="detalle-valor" style="color:#8b949e">#${item.Codigo}</div>
+            </div>
+        </div>
+    `;
+    if (!document.getElementById('detalle-info')) cont.appendChild(detalleDiv);
+}
+
+// ── Buscador ──
+document.getElementById("busqueda").addEventListener("input", e => {
+    const txt = e.target.value.toLowerCase().trim();
+    if (!txt) {
+        renderCategorias(datosGlobal);
+        document.getElementById("colSubcategorias").innerHTML = '<h2>Selecciona una categoría</h2>';
+        document.getElementById("colDetalle").innerHTML = '<h2>Selecciona una subcategoría</h2>';
+        return;
+    }
+    const filtrados = datosGlobal.filter(x =>
+        (x.Categoria_Principa || "").toLowerCase().includes(txt) ||
+        (x.Subcategoria || "").toLowerCase().includes(txt) ||
+        (x.Elemento || "").toLowerCase().includes(txt)
+    );
+    renderCategorias(filtrados);
+    mostrarResultadosBusqueda(filtrados);
+});
+
+function mostrarResultadosBusqueda(data) {
+    const cont = document.getElementById("colSubcategorias");
+    cont.innerHTML = `<h2>Resultados (${data.length})</h2>`;
+    data.slice(0, 50).forEach(i => {
+        const div = document.createElement("div");
+        div.className = "sub-card";
+        div.innerHTML = `<b>${i.Elemento}</b><br><small>${i.Categoria_Principa} → ${i.Subcategoria}</small>`;
+        div.onclick = () => mostrarDetalle(i);
+        cont.appendChild(div);
+    });
+}
+
+// ── Mapa D3 ──
+function convertirAArbol(data) {
+    const root = {};
+    data.forEach(i => {
+        if (!root[i.Categoria_Principa]) root[i.Categoria_Principa] = {};
+        if (!root[i.Categoria_Principa][i.Subcategoria]) root[i.Categoria_Principa][i.Subcategoria] = [];
+        root[i.Categoria_Principa][i.Subcategoria].push({ name: i.Elemento });
+    });
+    return {
+        name: "SENTINEL",
+        children: Object.keys(root).map(c => ({
+            name: c,
+            children: Object.keys(root[c]).map(s => ({
+                name: s,
+                children: root[c][s]
+            }))
+        }))
+    };
+}
+
+function drawMindMap(data) {
+    const container = document.getElementById("mapaContainer");
+    container.innerHTML = "";
+    const width = 2800, height = 2000;
+
+    const svg = d3.select("#mapaContainer").append("svg")
+        .attr("width", width).attr("height", height)
+        .style("background", "#0d1117");
+
+    const g = svg.append("g").attr("transform", "translate(120,80)");
+
+    svg.call(d3.zoom().scaleExtent([0.2, 4]).on("zoom", e => g.attr("transform", e.transform)));
+
+    const root = d3.hierarchy(data);
+    root.descendants().forEach(d => {
+        if (d.depth >= 2) { d._children = d.children; d.children = null; }
+    });
+
+    function update() {
+        g.selectAll("*").remove();
+        const treeLayout = d3.tree().size([height - 200, width - 500]);
+        treeLayout(root);
+
+        g.selectAll(".link").data(root.links()).enter().append("path")
+            .attr("fill", "none").attr("stroke", "#30363d").attr("stroke-width", 1.5)
+            .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
+
+        const node = g.selectAll(".node").data(root.descendants()).enter()
+            .append("g").attr("transform", d => `translate(${d.y},${d.x})`);
+
+        node.append("circle")
+            .attr("r", d => d.depth === 0 ? 12 : d.depth === 1 ? 8 : d.depth === 2 ? 6 : 4)
+            .attr("fill", d => {
+                if (d.depth === 0) return "#1f2937";
+                if (d.depth === 1) return "#1f6feb";
+                if (d.depth === 2) return "#238636";
+                return "#e3b341";
+            })
+            .style("cursor", "pointer")
+            .on("click", (event, d) => {
+                mostrarDetalleMapa(d);
+                if (d.children) { d._children = d.children; d.children = null; }
+                else { d.children = d._children; d._children = null; }
+                update();
+            });
+
+        node.append("text")
+            .attr("x", 14).attr("dy", "0.35em")
+            .style("font-size", d => d.depth === 0 ? "16px" : d.depth === 1 ? "13px" : "11px")
+            .style("font-weight", d => d.depth <= 1 ? "bold" : "normal")
+            .style("fill", d => {
+                if (d.depth === 0) return "#c9d1d9";
+                if (d.depth === 1) return "#58a6ff";
+                if (d.depth === 2) return "#3fb950";
+                return "#e3b341";
+            })
+            .style("cursor", "pointer")
+            .text(d => (d._children ? "▶ " : d.children ? "▼ " : "") + d.data.name)
+            .on("click", (event, d) => {
+                mostrarDetalleMapa(d);
+                if (d.children) { d._children = d.children; d.children = null; }
+                else { d.children = d._children; d._children = null; }
+                update();
+            });
+    }
+    update();
+}
+
+function mostrarDetalleMapa(d) {
+    const niveles = ["Centro", "Categoría", "Subcategoría", "Tipo específico"];
+    document.getElementById("contenidoInfoMapa").innerHTML = `
+        <div class="infoCampo">
+            <div class="infoTitulo">Nombre</div>
+            <div class="infoValor">${d.data.name}</div>
+        </div>
+        <div class="infoCampo">
+            <div class="infoTitulo">Nivel</div>
+            <div class="infoValor">${niveles[d.depth] || "Elemento"}</div>
+        </div>
+        <div class="infoCampo">
+            <div class="infoTitulo">Hijos</div>
+            <div class="infoValor">${(d.children || d._children || []).length} elementos</div>
+        </div>
+    `;
+}
+
+document.getElementById("btnMapa").onclick = () => {
+    document.getElementById("modalMapa").style.display = "block";
+    drawMindMap(convertirAArbol(datosGlobal));
+};
+
+document.getElementById("cerrarMapa").onclick = () => {
+    document.getElementById("modalMapa").style.display = "none";
+};
+
+// ── Inicializar ──
+renderCategorias(datosGlobal);
+</script>
+{% endblock %}

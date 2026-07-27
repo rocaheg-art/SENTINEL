@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block titulo %}Buscador scraping{% endblock %}
+
+{% block contenido %}
+<div class="page-header">
+    <div class="page-title"><i class="bi bi-search" style="color:var(--blue)"></i> Buscador scraping</div>
+    <div class="page-subtitle">Busca páginas y publicaciones públicas de Facebook desde búsqueda web para alimentar la base de fuentes, sin iniciar sesión en Facebook.</div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in messages %}
+        <div class="{% if categoria == 'error' %}alert-error{% else %}alert-success{% endif %}">
+            {{ mensaje }}
+        </div>
+    {% endfor %}
+{% endwith %}
+
+<div class="card-sentinel p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+        <div>
+            <h5 class="mb-1">Nueva búsqueda</h5>
+            <div style="color:var(--text-muted); font-size:13px;">
+                El módulo usa <b>{{ search_provider or 'búsqueda web' }}</b> para encontrar resultados públicos de Facebook.<br>
+                No necesita iniciar sesión en Facebook ni usar <code>facebook_session.json</code>.
+            </div>
+        </div>
+        {% if search_api_configured %}
+            <span class="badge" style="background:#1a3a2a;color:var(--green);border:1px solid var(--green);">API configurada</span>
+        {% else %}
+            <span class="badge" style="background:#3a1a1a;color:var(--red);border:1px solid var(--red);">Falta API de búsqueda</span>
+        {% endif %}
+    </div>
+
+    {% if not search_api_configured %}
+        <div class="alert-error mt-3">
+            Falta configurar <b>GOOGLE_CSE_API_KEY</b> y <b>GOOGLE_CSE_ID</b> en el servicio <code>sentinel</code>. Sin esas variables, el buscador no puede consultar resultados web.
+        </div>
+    {% endif %}
+
+    <form method="POST" action="/buscador" class="mt-3">
+        <div class="row g-3">
+            <div class="col-md-7">
+                <label class="form-label-s">Palabras clave</label>
+                <textarea name="terminos" rows="8" class="input-s" placeholder="Una por línea o separadas por coma">{{ default_terms }}</textarea>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Ejemplo: accidente, incendio, bloqueo, robo, inundación.</div>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label-s">Ubicación agregada a cada búsqueda</label>
+                <input type="text" name="ubicacion" class="input-s mb-3" value="Querétaro">
+
+                <label class="form-label-s">Páginas de resultados por término</label>
+                <input type="number" name="scrolls" class="input-s mb-3" value="1" min="1" max="5">
+
+                <label class="form-label-s">Máximo de resultados por término</label>
+                <input type="number" name="max_posts" class="input-s mb-3" value="10" min="1" max="50">
+
+                <button class="btn-primary-s" type="submit" {% if not search_api_configured %}disabled{% endif %}>
+                    <i class="bi bi-play-fill"></i> Ejecutar búsqueda
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if job %}
+<div class="card-sentinel p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h5 class="mb-1">Búsqueda #{{ job.id_job }}</h5>
+            <div style="font-size:13px;color:var(--text-muted);">
+                Estado: <b>{{ job.estado }}</b> · Ubicación: {{ job.ubicacion }} · Resultados: {{ job.total_resultados or 0 }}
+            </div>
+            {% if job.mensaje_error %}
+                <div class="alert-error mt-2">{{ job.mensaje_error }}</div>
+            {% endif %}
+        </div>
+        <a href="/buscador/job/{{ job.id_job }}" class="btn-outline-s"><i class="bi bi-arrow-clockwise"></i> Actualizar</a>
+    </div>
+</div>
+
+<div class="tabla-container mb-4">
+    <table>
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Búsqueda</th>
+                <th>Resultado</th>
+                <th>Fuente detectada</th>
+                <th>Agregar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in resultados %}
+            <tr>
+                <td><span class="badge-cat">{{ r.tipo_resultado }}</span></td>
+                <td>{{ r.busqueda }}</td>
+                <td style="max-width:420px;">
+                    <div style="font-size:12px;color:var(--text-muted);max-height:110px;overflow:auto;">{{ r.texto }}</div>
+                    {% if r.enlace %}<a href="{{ r.enlace }}" target="_blank" class="btn-sm-ver mt-2 d-inline-block">Ver enlace</a>{% endif %}
+                </td>
+                <td style="max-width:260px;word-break:break-all;">
+                    {% if r.url_fuente %}
+                        <a href="{{ r.url_fuente }}" target="_blank" style="color:var(--blue);">{{ r.url_fuente }}</a>
+                    {% else %}
+                        <span style="color:var(--text-muted);">Sin URL de fuente</span>
+                    {% endif %}
+                    {% if r.fuente_agregada_id %}
+                        <div class="badge-user mt-2">Agregada como #{{ r.fuente_agregada_id }}</div>
+                    {% endif %}
+                </td>
+                <td style="min-width:280px;">
+                    {% if r.url_fuente and not r.fuente_agregada_id %}
+                    <form method="POST" action="/buscador/agregar_fuente/{{ r.id_resultado }}" class="d-grid gap-2">
+                        <input type="hidden" name="url_facebook" value="{{ r.url_fuente }}">
+                        <input type="text" name="nombre" class="input-s" value="{{ r.nombre_fuente }}" placeholder="Nombre de fuente">
+                        <select name="categoria_id" class="input-s" required>
+                            <option value="">-- Categoría --</option>
+                            {% for c in categorias %}
+                                <option value="{{ c.id }}">{{ c.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="row g-2">
+                            <div class="col-6"><input type="text" name="municipio" class="input-s" placeholder="Municipio"></div>
+                            <div class="col-6"><input type="text" name="estado" class="input-s" value="Querétaro"></div>
+                        </div>
+                        <input type="hidden" name="pais" value="México">
+                        <input type="hidden" name="tipo_fuente" value="Pendiente">
+                        <button class="btn-success-s" type="submit"><i class="bi bi-plus-circle"></i> Agregar a fuentes</button>
+                    </form>
+                    {% elif r.fuente_agregada_id %}
+                        <span style="color:var(--green);">Ya fue agregada.</span>
+                    {% else %}
+                        <span style="color:var(--text-muted);">No disponible</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">Aún no hay resultados para esta búsqueda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if jobs %}
+<div class="card-sentinel p-4">
+    <h5 class="mb-3">Últimas búsquedas</h5>
+    <div class="tabla-container">
+        <table>
+            <thead><tr><th>ID</th><th>Ubicación</th><th>Estado</th><th>Total</th><th>Fecha</th><th></th></tr></thead>
+            <tbody>
+                {% for j in jobs %}
+                <tr>
+                    <td>#{{ j.id_job }}</td>
+                    <td>{{ j.ubicacion }}</td>
+                    <td>{{ j.estado }}</td>
+                    <td>{{ j.total_resultados or 0 }}</td>
+                    <td>{{ j.fecha_inicio }}</td>
+                    <td><a href="/buscador/job/{{ j.id_job }}" class="btn-sm-ver">Ver</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

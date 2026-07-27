@@ -1,0 +1,210 @@
+Id,categoria_raiz,Cod_Categoria,subcategoria,Subcategoria_Cod2,tipo_especifico,Codigo
+1,Gobierno,1,Poder Ejecutivo,1.1,Gobierno Estatal,1.1.1
+2,Gobierno,1,Poder Ejecutivo,1.1,Gobierno Municipal,1.1.2
+3,Gobierno,1,Poder Ejecutivo,1.1,Ayuntamiento,1.1.3
+4,Gobierno,1,Poder Ejecutivo,1.1,Secretaría Estatal,1.1.4
+5,Gobierno,1,Poder Ejecutivo,1.1,Secretaría Municipal,1.1.5
+6,Gobierno,1,Poder Ejecutivo,1.1,Dependencia Estatal,1.1.6
+7,Gobierno,1,Poder Ejecutivo,1.1,Dependencia Municipal,1.1.7
+8,Gobierno,1,Poder Ejecutivo,1.1,Dirección Municipal,1.1.8
+9,Gobierno,1,Poder Ejecutivo,1.1,Delegación,1.1.9
+10,Gobierno,1,Poder Ejecutivo,1.1,Coordinación Administrativa,1.1.10
+11,Gobierno,1,Poder Ejecutivo,1.1,Organismo Descentralizado,1.1.11
+12,Gobierno,1,Poder Ejecutivo,1.1,Instituto Público,1.1.12
+13,Gobierno,1,Poder Ejecutivo,1.1,Sistema DIF,1.1.13
+14,Gobierno,1,Poder Ejecutivo,1.1,Unidad Administrativa,1.1.14
+15,Gobierno,1,Poder Legislativo,1.2,Congreso del Estado,1.2.1
+16,Gobierno,1,Poder Legislativo,1.2,Cámara Legislativa,1.2.2
+17,Gobierno,1,Poder Legislativo,1.2,Diputado Local,1.2.3
+18,Gobierno,1,Poder Legislativo,1.2,Diputado Federal,1.2.4
+19,Gobierno,1,Poder Legislativo,1.2,Senador,1.2.5
+20,Gobierno,1,Poder Legislativo,1.2,Comisión Legislativa,1.2.6
+21,Gobierno,1,Poder Legislativo,1.2,Grupo Parlamentario,1.2.7
+22,Gobierno,1,Poder Legislativo,1.2,Mesa Directiva Legislativa,1.2.8
+23,Gobierno,1,Poder Legislativo,1.2,Junta de Coordinación Política,1.2.9
+24,Gobierno,1,Poder Legislativo,1.2,Órgano Técnico Legislativo,1.2.10
+25,Gobierno,1,Poder Judicial,1.3,Tribunal Superior de Justicia,1.3.1
+26,Gobierno,1,Poder Judicial,1.3,Juzgado,1.3.2
+27,Gobierno,1,Poder Judicial,1.3,Consejo de la Judicatura,1.3.3
+28,Gobierno,1,Poder Judicial,1.3,Sala Judicial,1.3.4
+29,Gobierno,1,Poder Judicial,1.3,Tribunal Especializado,1.3.5
+30,Gobierno,1,Poder Judicial,1.3,Centro de Justicia Alternativa,1.3.6
+31,Gobierno,1,Poder Judicial,1.3,Escuela Judicial,1.3.7
+32,Gobierno,1,Poder Judicial,1.3,Archivo Judicial,1.3.8
+33,Gobierno,1,Poder Judicial,1.3,Comunicación Social Judicial,1.3.9
+34,Gobierno,1,Seguridad Pública,1.4,Policía Municipal,1.4.1
+35,Gobierno,1,Seguridad Pública,1.4,Policía Estatal,1.4.2
+36,Gobierno,1,Seguridad Pública,1.4,Guardia Nacional,1.4.3
+37,Gobierno,1,Seguridad Pública,1.4,Seguridad Vial,1.4.4
+38,Gobierno,1,Seguridad Pública,1.4,Tránsito Municipal,1.4.5
+39,Gobierno,1,Seguridad Pública,1.4,Centro de Monitoreo / C5 / C4,1.4.6
+40,Gobierno,1,Seguridad Pública,1.4,Secretaría de Seguridad Pública,1.4.7
+41,Gobierno,1,Seguridad Pública,1.4,Dirección de Seguridad Pública,1.4.8
+42,Gobierno,1,Seguridad Pública,1.4,Unidad de Prevención del Delito,1.4.9
+43,Gobierno,1,Justicia y Órganos Autónomos,1.5,Fiscalía,1.5.1
+44,Gobierno,1,Justicia y Órganos Autónomos,1.5,Defensoría Pública,1.5.2
+45,Gobierno,1,Justicia y Órganos Autónomos,1.5,Derechos Humanos,1.5.3
+46,Gobierno,1,Justicia y Órganos Autónomos,1.5,Instituto Electoral,1.5.4
+47,Gobierno,1,Justicia y Órganos Autónomos,1.5,Tribunal Electoral,1.5.5
+48,Gobierno,1,Justicia y Órganos Autónomos,1.5,Transparencia,1.5.6
+49,Gobierno,1,Justicia y Órganos Autónomos,1.5,Auditoría Superior,1.5.7
+50,Gobierno,1,Justicia y Órganos Autónomos,1.5,Sistema Penitenciario,1.5.8
+51,Gobierno,1,Justicia y Órganos Autónomos,1.5,Procuraduría,1.5.9
+52,Gobierno,1,Justicia y Órganos Autónomos,1.5,Comisión Estatal,1.5.10
+53,Gobierno,1,Justicia y Órganos Autónomos,1.5,Órgano Autónomo,1.5.11
+54,Gobierno,1,Protección Civil,1.6,Protección Civil Estatal,1.6.1
+55,Gobierno,1,Protección Civil,1.6,Protección Civil Municipal,1.6.2
+56,Gobierno,1,Protección Civil,1.6,Gestión de Riesgos,1.6.3
+57,Gobierno,1,Protección Civil,1.6,Prevención de Desastres,1.6.4
+58,Gobierno,1,Protección Civil,1.6,Alertamiento Preventivo,1.6.5
+59,Gobierno,1,Protección Civil,1.6,Atención de Emergencias,1.6.6
+60,Gobierno,1,Protección Civil,1.6,Unidad Municipal de Protección Civil,1.6.7
+61,Gobierno,1,Dependencias Gubernamentales,1.7,Salud,1.7.1
+62,Gobierno,1,Dependencias Gubernamentales,1.7,Educación,1.7.2
+63,Gobierno,1,Dependencias Gubernamentales,1.7,Obras Públicas,1.7.3
+64,Gobierno,1,Dependencias Gubernamentales,1.7,Movilidad,1.7.4
+65,Gobierno,1,Dependencias Gubernamentales,1.7,Desarrollo Social,1.7.5
+66,Gobierno,1,Dependencias Gubernamentales,1.7,Servicios Públicos,1.7.6
+67,Gobierno,1,Dependencias Gubernamentales,1.7,Medio Ambiente,1.7.7
+68,Gobierno,1,Dependencias Gubernamentales,1.7,Turismo,1.7.8
+69,Gobierno,1,Dependencias Gubernamentales,1.7,Cultura,1.7.9
+70,Gobierno,1,Dependencias Gubernamentales,1.7,Comunicación Social,1.7.10
+71,Gobierno,1,Dependencias Gubernamentales,1.7,Desarrollo Económico,1.7.11
+72,Gobierno,1,Dependencias Gubernamentales,1.7,Finanzas,1.7.12
+73,Gobierno,1,Dependencias Gubernamentales,1.7,Administración,1.7.13
+74,Gobierno,1,Dependencias Gubernamentales,1.7,Contraloría,1.7.14
+75,Gobierno,1,Dependencias Gubernamentales,1.7,Planeación,1.7.15
+76,Gobierno,1,Dependencias Gubernamentales,1.7,Juventud,1.7.16
+77,Gobierno,1,Dependencias Gubernamentales,1.7,Mujeres,1.7.17
+78,Gobierno,1,Dependencias Gubernamentales,1.7,Deporte,1.7.18
+79,Medio Informativo,2,Portal Digital,2.1,Noticias Locales,2.1.1
+80,Medio Informativo,2,Portal Digital,2.1,Noticias Estatales,2.1.2
+81,Medio Informativo,2,Portal Digital,2.1,Nota Roja,2.1.3
+82,Medio Informativo,2,Portal Digital,2.1,Política,2.1.4
+83,Medio Informativo,2,Portal Digital,2.1,Tráfico,2.1.5
+84,Medio Informativo,2,Portal Digital,2.1,Comunidad,2.1.6
+85,Medio Informativo,2,Portal Digital,2.1,Noticias Generales,2.1.7
+86,Medio Informativo,2,Periódico,2.2,Digital,2.2.1
+87,Medio Informativo,2,Periódico,2.2,Impreso,2.2.2
+88,Medio Informativo,2,Periódico,2.2,Híbrido,2.2.3
+89,Medio Informativo,2,Radio,2.3,Radio Noticias,2.3.1
+90,Medio Informativo,2,Radio,2.3,Radio Comunitaria,2.3.2
+91,Medio Informativo,2,Radio,2.3,Radio Comercial,2.3.3
+92,Medio Informativo,2,Radio,2.3,Tráfico en Vivo,2.3.4
+93,Medio Informativo,2,Radio,2.3,Entrevistas / Programas,2.3.5
+94,Medio Informativo,2,Televisión,2.4,Noticiero,2.4.1
+95,Medio Informativo,2,Televisión,2.4,Canal Local,2.4.2
+96,Medio Informativo,2,Televisión,2.4,Canal Estatal,2.4.3
+97,Medio Informativo,2,Televisión,2.4,Reporteros,2.4.4
+98,Medio Informativo,2,Televisión,2.4,Transmisiones en Vivo,2.4.5
+99,Medio Informativo,2,Televisión,2.4,Cortes Informativos,2.4.6
+100,Medio Informativo,2,Blog / Página Independiente,2.5,Periodismo Independiente,2.5.1
+101,Medio Informativo,2,Blog / Página Independiente,2.5,Opinión,2.5.2
+102,Medio Informativo,2,Blog / Página Independiente,2.5,Análisis,2.5.3
+103,Medio Informativo,2,Blog / Página Independiente,2.5,Comunitario,2.5.4
+104,Medio Informativo,2,Plataforma Multimedia,2.6,Transmisiones en Vivo,2.6.1
+105,Medio Informativo,2,Plataforma Multimedia,2.6,Video Noticias,2.6.2
+106,Medio Informativo,2,Plataforma Multimedia,2.6,Cobertura en Tiempo Real,2.6.3
+107,Medio Informativo,2,Plataforma Multimedia,2.6,Contenido Digital,2.6.4
+108,Comunidad,3,Grupos Comunitarios,3.1,Colonos,3.1.1
+109,Comunidad,3,Grupos Comunitarios,3.1,Vecinos,3.1.2
+110,Comunidad,3,Grupos Comunitarios,3.1,Información Local,3.1.3
+111,Comunidad,3,Grupos Comunitarios,3.1,Comunidad Municipal,3.1.4
+112,Comunidad,3,Grupos Comunitarios,3.1,Comunidad por Colonia,3.1.5
+113,Comunidad,3,Denuncias Ciudadanas,3.2,Seguridad,3.2.1
+114,Comunidad,3,Denuncias Ciudadanas,3.2,Servicios Públicos,3.2.2
+115,Comunidad,3,Denuncias Ciudadanas,3.2,Quejas / Reportes,3.2.3
+116,Comunidad,3,Denuncias Ciudadanas,3.2,Tráfico,3.2.4
+117,Comunidad,3,Denuncias Ciudadanas,3.2,Personas Desaparecidas,3.2.5
+118,Comunidad,3,Denuncias Ciudadanas,3.2,Mascotas Perdidas,3.2.6
+119,Comunidad,3,Denuncias Ciudadanas,3.2,Emergencias Ciudadanas,3.2.7
+120,Comunidad,3,Ayuda Ciudadana,3.3,Apoyo Social,3.3.1
+121,Comunidad,3,Ayuda Ciudadana,3.3,Donaciones,3.3.2
+122,Comunidad,3,Ayuda Ciudadana,3.3,Búsqueda de Personas,3.3.3
+123,Comunidad,3,Ayuda Ciudadana,3.3,Búsqueda de Mascotas,3.3.4
+124,Comunidad,3,Ayuda Ciudadana,3.3,Apoyo Comunitario,3.3.5
+125,Comunidad,3,Ayuda Ciudadana,3.3,Reportes Solidarios,3.3.6
+126,Figura Pública,4,Figura Política,4.1,Gobernador,4.1.1
+127,Figura Pública,4,Figura Política,4.1,Presidente Municipal,4.1.2
+128,Figura Pública,4,Figura Política,4.1,Regidor,4.1.3
+129,Figura Pública,4,Figura Política,4.1,Diputado,4.1.4
+130,Figura Pública,4,Figura Política,4.1,Senador,4.1.5
+131,Figura Pública,4,Figura Política,4.1,Funcionario Público,4.1.6
+132,Figura Pública,4,Figura Política,4.1,Secretario,4.1.7
+133,Figura Pública,4,Comunicador / Periodista,4.2,Reportero,4.2.1
+134,Figura Pública,4,Comunicador / Periodista,4.2,Periodista Independiente,4.2.2
+135,Figura Pública,4,Comunicador / Periodista,4.2,Conductor de Noticias,4.2.3
+136,Figura Pública,4,Comunicador / Periodista,4.2,Analista Político,4.2.4
+137,Figura Pública,4,Comunicador / Periodista,4.2,Creador de Contenido Informativo,4.2.5
+138,Figura Pública,4,Líder Social,4.3,Activista,4.3.1
+139,Figura Pública,4,Líder Social,4.3,Representante Comunitario,4.3.2
+140,Figura Pública,4,Líder Social,4.3,Líder Vecinal,4.3.3
+141,Figura Pública,4,Líder Social,4.3,Vocero Ciudadano,4.3.4
+142,Emergencias y Rescate,5,Cuerpos de Emergencia,5.1,Bomberos,5.1.1
+143,Emergencias y Rescate,5,Cuerpos de Emergencia,5.1,Cruz Roja,5.1.2
+144,Emergencias y Rescate,5,Cuerpos de Emergencia,5.1,Paramédicos,5.1.3
+145,Emergencias y Rescate,5,Cuerpos de Emergencia,5.1,Rescate Urbano,5.1.4
+146,Emergencias y Rescate,5,Cuerpos de Emergencia,5.1,Rescate Animal,5.1.5
+147,Emergencias y Rescate,5,Alertas y Riesgos,5.2,Alertas Climáticas,5.2.1
+148,Emergencias y Rescate,5,Alertas y Riesgos,5.2,Alertas Viales,5.2.2
+149,Emergencias y Rescate,5,Alertas y Riesgos,5.2,Alertas de Seguridad,5.2.3
+150,Emergencias y Rescate,5,Alertas y Riesgos,5.2,Alertas Comunitarias,5.2.4
+151,Emergencias y Rescate,5,Salud de Emergencia,5.3,Ambulancias,5.3.1
+152,Emergencias y Rescate,5,Salud de Emergencia,5.3,Atención Prehospitalaria,5.3.2
+153,Emergencias y Rescate,5,Salud de Emergencia,5.3,Hospitales de Emergencia,5.3.3
+154,Emergencias y Rescate,5,Salud de Emergencia,5.3,Campañas de Salud Urgente,5.3.4
+155,Servicios Públicos y Movilidad,6,Movilidad y Transporte,6.1,Transporte Público,6.1.1
+156,Servicios Públicos y Movilidad,6,Movilidad y Transporte,6.1,Movilidad Urbana,6.1.2
+157,Servicios Públicos y Movilidad,6,Movilidad y Transporte,6.1,Tránsito,6.1.3
+158,Servicios Públicos y Movilidad,6,Movilidad y Transporte,6.1,Rutas y Vialidades,6.1.4
+159,Servicios Públicos y Movilidad,6,Movilidad y Transporte,6.1,Obras Viales,6.1.5
+160,Servicios Públicos y Movilidad,6,Servicios Públicos,6.2,Agua,6.2.1
+161,Servicios Públicos y Movilidad,6,Servicios Públicos,6.2,Energía Eléctrica,6.2.2
+162,Servicios Públicos y Movilidad,6,Servicios Públicos,6.2,Alumbrado Público,6.2.3
+163,Servicios Públicos y Movilidad,6,Servicios Públicos,6.2,Recolección de Basura,6.2.4
+164,Servicios Públicos y Movilidad,6,Servicios Públicos,6.2,Bacheo,6.2.5
+165,Servicios Públicos y Movilidad,6,Servicios Públicos,6.2,Drenaje,6.2.6
+166,Servicios Públicos y Movilidad,6,Infraestructura Urbana,6.3,Obras Públicas,6.3.1
+167,Servicios Públicos y Movilidad,6,Infraestructura Urbana,6.3,Mantenimiento Urbano,6.3.2
+168,Servicios Públicos y Movilidad,6,Infraestructura Urbana,6.3,Cierres Viales,6.3.3
+169,Servicios Públicos y Movilidad,6,Infraestructura Urbana,6.3,Reparaciones,6.3.4
+170,Servicios Públicos y Movilidad,6,Infraestructura Urbana,6.3,Proyectos Urbanos,6.3.5
+171,Organizaciones y Sociedad Civil,7,Asociación Civil,7.1,Apoyo Social,7.1.1
+172,Organizaciones y Sociedad Civil,7,Asociación Civil,7.1,Derechos Humanos,7.1.2
+173,Organizaciones y Sociedad Civil,7,Asociación Civil,7.1,Seguridad Ciudadana,7.1.3
+174,Organizaciones y Sociedad Civil,7,Asociación Civil,7.1,Medio Ambiente,7.1.4
+175,Organizaciones y Sociedad Civil,7,Asociación Civil,7.1,Salud Comunitaria,7.1.5
+176,Organizaciones y Sociedad Civil,7,Colectivos,7.2,Colectivo Vecinal,7.2.1
+177,Organizaciones y Sociedad Civil,7,Colectivos,7.2,Colectivo de Búsqueda,7.2.2
+178,Organizaciones y Sociedad Civil,7,Colectivos,7.2,Colectivo Ambiental,7.2.3
+179,Organizaciones y Sociedad Civil,7,Colectivos,7.2,Colectivo Social,7.2.4
+180,Organizaciones y Sociedad Civil,7,Instituciones de Apoyo,7.3,Fundaciones,7.3.1
+181,Organizaciones y Sociedad Civil,7,Instituciones de Apoyo,7.3,Organizaciones Comunitarias,7.3.2
+182,Organizaciones y Sociedad Civil,7,Instituciones de Apoyo,7.3,Grupos de Voluntariado,7.3.3
+183,Empresa / Negocio,8,Medio Privado,8.1,Agencia de Noticias,8.1.1
+184,Empresa / Negocio,8,Medio Privado,8.1,Productora Informativa,8.1.2
+185,Empresa / Negocio,8,Medio Privado,8.1,Comunicación Digital,8.1.3
+186,Empresa / Negocio,8,Servicios Privados,8.2,Seguridad Privada,8.2.1
+187,Empresa / Negocio,8,Servicios Privados,8.2,Transporte Privado,8.2.2
+188,Empresa / Negocio,8,Servicios Privados,8.2,Servicios de Salud,8.2.3
+189,Empresa / Negocio,8,Servicios Privados,8.2,Servicios de Emergencia Privada,8.2.4
+190,Empresa / Negocio,8,Negocio Local,8.3,Comercio Local,8.3.1
+191,Empresa / Negocio,8,Negocio Local,8.3,Plaza Comercial,8.3.2
+192,Empresa / Negocio,8,Negocio Local,8.3,Servicio Local,8.3.3
+193,Empresa / Negocio,8,Negocio Local,8.3,Empresa Regional,8.3.4
+194,Educación y Salud,9,Educación,9.1,Universidad,9.1.1
+195,Educación y Salud,9,Educación,9.1,Escuela,9.1.2
+196,Educación y Salud,9,Educación,9.1,Instituto,9.1.3
+197,Educación y Salud,9,Educación,9.1,Centro de Capacitación,9.1.4
+198,Educación y Salud,9,Salud,9.2,Hospital,9.2.1
+199,Educación y Salud,9,Salud,9.2,Clínica,9.2.2
+200,Educación y Salud,9,Salud,9.2,Secretaría de Salud,9.2.3
+201,Educación y Salud,9,Salud,9.2,Campañas de Salud,9.2.4
+202,Educación y Salud,9,Salud,9.2,Centro de Atención Médica,9.2.5
+203,Otro / Sin Clasificar,10,Pendiente de revisión,10.1,Sin clasificar,10.1.1
+204,Otro / Sin Clasificar,10,Pendiente de revisión,10.1,Requiere validación,10.1.2
+205,Otro / Sin Clasificar,10,Pendiente de revisión,10.1,Fuente dudosa,10.1.3
+206,Otro / Sin Clasificar,10,No relevante,10.2,Página inactiva,10.2.1
+207,Otro / Sin Clasificar,10,No relevante,10.2,Página duplicada,10.2.2
+208,Otro / Sin Clasificar,10,No relevante,10.2,Página fuera del alcance,10.2.3
+209,Otro / Sin Clasificar,10,No relevante,10.2,Página sin contenido útil,10.2.4

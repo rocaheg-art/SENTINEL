@@ -1,0 +1,24 @@
+[Unit]
+Description=SENTINEL Flask App
+After=network.target mssql-server.service
+
+[Service]
+Environment="GOOGLE_CSE_API_KEY=CAMBIAR_API_KEY"
+Environment="GOOGLE_CSE_ID=CAMBIAR_CSE_ID"
+User=sentinel
+Group=sentinel
+WorkingDirectory=/opt/sentinel/SENTINEL_Final_SQLServer_Eli_Compatible
+Environment="SQLSERVER_DRIVER=ODBC Driver 18 for SQL Server"
+Environment="SQLSERVER_SERVER=localhost"
+Environment="SQLSERVER_DATABASE=SENTINEL_DB"
+Environment="SQLSERVER_TRUSTED_CONNECTION=no"
+Environment="SQLSERVER_USER=sa"
+Environment="SQLSERVER_PASSWORD=CAMBIAR_PASSWORD_SA"
+Environment="SQLSERVER_ENCRYPT=yes"
+Environment="SQLSERVER_TRUST_CERT=yes"
+Environment="SECRET_KEY=CAMBIAR_SECRET_KEY"
+ExecStart=/opt/sentinel/SENTINEL_Final_SQLServer_Eli_Compatible/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,512 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;      /* True black for Apple OLED look */
+  --foreground: #f5f5f7;      /* Apple light gray text */
+  --card-bg: #1c1c1e;         /* iOS/macOS settings folder dark background */
+  --card-border: rgba(255, 255, 255, 0.08); /* Fine translucid border */
+  --accent-blue: #007AFF;     /* Apple Blue */
+  --accent-cyan: #64D2FF;     /* Apple Light Blue / Cyan */
+  --text-muted: #8e8e93;      /* Apple Gray */
+
+  /* Apple Alert Colors */
+  --critical: #FF3B30;        /* Apple Red */
+  --attention: #FF9500;       /* Apple Orange/Amber */
+  --info: #007AFF;            /* Apple Blue */
+  --ok: #34C759;              /* Apple Green */
+  --purple-apple: #AF52DE;    /* Apple Purple */
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-text-muted: var(--text-muted);
+  
+  --color-critical: var(--critical);
+  --color-attention: var(--attention);
+  --color-info: var(--info);
+  --color-ok: var(--ok);
+  --color-purple-apple: var(--purple-apple);
+  --color-slate-accent: #1c1c1e;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), monospace;
+  --font-inter: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: var(--font-serif), Georgia, serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+  letter-spacing: -0.022em; /* Apple-like tighter spacing for high readability */
+  overflow-x: hidden;
+}
+
+/* Custom dark scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #141414 25%, #1f1f1f 50%, #141414 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+/* Intelligence Panel Utilities */
+.panel-border {
+  border: 1px solid var(--card-border);
+}
+
+.card-intelligence {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-intelligence:hover {
+  border-color: #2b2b2b;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  transform: translateY(-1px);
+}
+
+/* Glow effects */
+.glow-blue {
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.2);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2);
+}
+
+.glow-red {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
+}
+
+/* Dense styling utilities */
+.dense-text {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.25rem;
+}
+
+.mono-metrics {
+  font-family: var(--font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Observatorio Design System Tokens */
+.font-serif-editorial {
+  font-family: var(--font-serif), Georgia, serif;
+}
+
+.font-sans-editorial {
+  font-family: var(--font-inter), sans-serif;
+}
+
+.observatorio-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #0f172a;
+}
+
+.observatorio-card:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+}
+
+.observatorio-sparkcard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  color: #0f172a;
+}
+
+/* Drag timeline scroll styles */
+.observatorio-timeline-scroll {
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+.observatorio-timeline-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Flip animation for Live Toggle polling */
+@keyframes flipMetric {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(90deg);
+    opacity: 0.3;
+  }
+  100% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
+}
+.animate-flip-metric {
+  animation: flipMetric 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Fade-in staggered keys */
+@keyframes fadeUpIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fadeUpIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Print layouts for observatory reports */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header, nav, aside, button, .selector-tabs {
+    display: none !important;
+  }
+  .observatorio-card, .observatorio-sparkcard {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid;
+  }
+  .print-full-width {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
+  }
+}
+
+/* ========================================== */
+/* LIGHT THEME INJECTED OVERRIDES             */
+/* ========================================== */
+body.light,
+[data-theme="light"] {
+  --background: #f5f5f7;      /* Apple Store light gray */
+  --foreground: #000000;      /* Apple primary black text */
+  --card-bg: #ffffff;         /* Clean white card bg */
+  --card-border: rgba(0, 0, 0, 0.06); /* Sutil light border */
+  --text-muted: #8e8e93;      /* Apple Gray */
+}
+
+body.light body {
+  background-color: #f5f5f7 !important;
+  color: #000000 !important;
+}
+
+/* Backgrounds mapping */
+body.light .bg-\[\#0d0d0d\],
+body.light [class*="bg-[#0d0d0d]"] {
+  background-color: #f5f5f7 !important;
+}
+
+body.light .bg-\[\#141414\],
+body.light [class*="bg-[#141414]"] {
+  background-color: #ffffff !important;
+}
+
+body.light .bg-\[\#111\],
+body.light .bg-\[\#111111\],
+body.light [class*="bg-[#111]"],
+body.light [class*="bg-[#111111]"] {
+  background-color: #e5e5ea !important;
+}
+
+body.light .bg-\[\#1a1a1a\],
+body.light .bg-\[\#181818\],
+body.light .bg-\[\#1c1c1c\],
+body.light .bg-\[\#0a0a0a\],
+body.light [class*="bg-[#1a1a1a]"],
+body.light [class*="bg-[#181818]"],
+body.light [class*="bg-[#1c1c1c]"],
+body.light [class*="bg-[#0a0a0a]"] {
+  background-color: #e5e5ea !important;
+}
+
+body.light .bg-\[\#0d0d0d\]\/40,
+body.light [class*="bg-[#0d0d0d]/40"] {
+  background-color: rgba(245, 245, 247, 0.5) !important;
+}
+
+body.light .hover\:bg-\[\#1a1a1a\]:hover,
+body.light .hover\:bg-\[\#181818\]:hover,
+body.light .hover\:bg-\[\#1c1c1c\]:hover,
+body.light [class*="hover:bg-[#1a1a1a]"]:hover,
+body.light [class*="hover:bg-[#181818]"]:hover,
+body.light [class*="hover:bg-[#1c1c1c]"]:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Borders mapping */
+body.light .border-\[\#1f1f1f\],
+body.light [class*="border-[#1f1f1f]"] {
+  border-color: #e2e8f0 !important;
+}
+
+body.light .border-\[\#2b2b2b\],
+body.light .border-\[\#262626\],
+body.light [class*="border-[#2b2b2b]"],
+body.light [class*="border-[#262626]"] {
+  border-color: #cbd5e1 !important;
+}
+
+body.light .border-slate-850,
+body.light .border-slate-900,
+body.light [class*="border-slate-850"],
+body.light [class*="border-slate-900"] {
+  border-color: #e2e8f0 !important;
+}
+
+/* Text mapping */
+body.light .text-white,
+body.light [class*="text-white"] {
+  color: #0f172a !important;
+}
+
+body.light .text-gray-100,
+body.light .text-gray-150,
+body.light .text-gray-200,
+body.light .text-\[\#f3f4f6\],
+body.light [class*="text-gray-100"],
+body.light [class*="text-gray-150"],
+body.light [class*="text-gray-200"],
+body.light [class*="text-[#f3f4f6]"] {
+  color: #1e293b !important;
+}
+
+body.light .text-gray-300,
+body.light .text-gray-400,
+body.light [class*="text-gray-300"],
+body.light [class*="text-gray-400"] {
+  color: #334155 !important;
+}
+
+body.light .text-gray-550 {
+  color: #475569 !important;
+}
+
+body.light .text-gray-500,
+body.light .text-slate-500,
+body.light [class*="text-gray-500"],
+body.light [class*="text-slate-500"] {
+  color: #64748b !important;
+}
+
+/* Hover text */
+body.light [class*="hover:text-white"]:hover {
+  color: #0f172a !important;
+}
+
+/* Inputs, Selects, Textareas override */
+body.light input,
+body.light select,
+body.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+body.light input::placeholder,
+body.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Card intelligence override */
+body.light .card-intelligence {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+body.light .card-intelligence:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Scrollbars override */
+body.light ::-webkit-scrollbar-track {
+  background: #f8fafc !important;
+}
+body.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1 !important;
+}
+body.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8 !important;
+}
+
+/* Recharts component texts and grids in Light Mode */
+body.light svg text {
+  fill: #475569 !important;
+}
+body.light svg line.recharts-cartesian-grid-line,
+body.light svg path.recharts-cartesian-grid-line {
+  stroke: #cbd5e1 !important;
+  opacity: 0.5;
+}
+body.light .recharts-tooltip-wrapper > div {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Force dark styles for specific components (like Dashboard Block 1) */
+body.light .force-dark,
+body.light .force-dark span,
+body.light .force-dark p,
+body.light .force-dark h1,
+body.light .force-dark h2,
+body.light .force-dark h3,
+body.light .force-dark div,
+body.light .force-dark text {
+  color: #ffffff !important;
+}
+body.light .force-dark .text-gray-400,
+body.light .force-dark .text-slate-400,
+body.light .force-dark .text-gray-500 {
+  color: #94a3b8 !important;
+}
+body.light .force-dark border,
+body.light .force-dark .border-slate-800,
+body.light .force-dark [class*="border-"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Animation for new live feed news entering */
+@keyframes slideDownNews {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down-news {
+  animation: slideDownNews 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Leaflet custom dark theme styling */
+.leaflet-container {
+  background: #090b11 !important;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.leaflet-bar {
+  border: 1px solid #1f1f1f !important;
+  box-shadow: none !important;
+}
+
+.leaflet-bar a {
+  background-color: #141414 !important;
+  color: #94a3b8 !important;
+  border-bottom: 1px solid #1f1f1f !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: #1c1c1c !important;
+  color: #fff !important;
+}
+
+.leaflet-control-attribution {
+  background-color: rgba(13, 13, 13, 0.7) !important;
+  color: #475569 !important;
+  font-family: monospace;
+  font-size: 8px !important;
+}
+
+.leaflet-control-attribution a {
+  color: #3b82f6 !important;
+}
+
+/* Pulse marker in Leaflet */
+.leaflet-pulse-marker {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.leaflet-pulse-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 8px;
+  font-weight: bold;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.leaflet-pulse-ring {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  animation: leaflet-ping 1.5s ease-out infinite;
+  opacity: 0;
+  z-index: 1;
+}
+
+@keyframes leaflet-ping {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+
+
+

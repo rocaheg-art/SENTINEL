@@ -1,0 +1,398 @@
+from flask import Flask, render_template, request, redirect, url_for, flash, session, Response, jsonify
+from config import Config
+import bcrypt
+import csv
+import io
+import os
+import pyodbc
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+
+def connection_string():
+    driver = app.config.get('SQLSERVER_DRIVER', 'ODBC Driver 18 for SQL Server')
+    server = app.config.get('SQLSERVER_SERVER', 'localhost')
+    database = app.config.get('SQLSERVER_DATABASE', 'SENTINEL_DB')
+    trusted = str(app.config.get('SQLSERVER_TRUSTED_CONNECTION', 'no')).lower()
+    encrypt = str(app.config.get('SQLSERVER_ENCRYPT', 'yes')).lower()
+    trust_cert = str(app.config.get('SQLSERVER_TRUST_CERT', 'yes')).lower()
+    parts = [f'DRIVER={{{driver}}}', f'SERVER={server}', f'DATABASE={database}']
+    if trusted in ('yes', 'true', '1'):
+        parts.append('Trusted_Connection=yes')
+    else:
+        parts.append(f'UID={app.config.get("SQLSERVER_USER", "sa")}')
+        parts.append(f'PWD={app.config.get("SQLSERVER_PASSWORD", "")}')
+    parts.append(f'Encrypt={"yes" if encrypt in ("yes", "true", "1") else "no"}')
+    parts.append(f'TrustServerCertificate={"yes" if trust_cert in ("yes", "true", "1") else "no"}')
+    return ';'.join(parts)
+
+
+def get_conn():
+    return pyodbc.connect(connection_string())
+
+
+def rows_to_dicts(cursor):
+    columns = [col[0] for col in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+def row_to_dict(cursor):
+    row = cursor.fetchone()
+    if row is None:
+        return None
+    columns = [col[0] for col in cursor.description]
+    return dict(zip(columns, row))
+
+
+def require_login():
+    return 'usuario' in session
+
+
+def si_no_from_checkbox(name):
+    return 'Sí' if request.form.get(name) else 'No'
+
+
+def bool_for_template(value):
+    return 1 if str(value or '').strip().lower() in ('sí', 'si', '1', 'true', 'validado', 'aprobado', 'activa', 'activo') else 0
+
+
+def normalize_estado_template(value):
+    ev = str(value or '').strip().lower()
+    if ev in ('aprobado', 'validado'):
+        return 'validado'
+    if ev in ('rechazado', 'no relevante', 'enlace inválido', 'enlace invalido'):
+        return 'rechazado'
+    return 'pendiente'
+
+
+def get_categorias_por_nivel():
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT id_categoria AS id, nombre_categoria AS nombre, id_padre, nivel
+            FROM dbo.categorias
+            WHERE activa = 1
+            ORDER BY nivel, nombre_categoria
+        ''')
+        todas = rows_to_dicts(cur)
+    return (
+        [c for c in todas if c['nivel'] == 1],
+        [c for c in todas if c['nivel'] == 2],
+        [c for c in todas if c['nivel'] == 3]
+    )
+
+
+def get_fuente_form(id_fuente):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT id_fuente AS id, sitio AS nombre, url_web, url_facebook,
+                   municipio, estado, pais, tipo_fuente,
+                   enlace_valido, pagina_activa, duplicado, estado_validacion, observaciones,
+                   id_categoria_raiz, id_subcategoria, id_tipo_especifico, id_categoria,
+                   categoria_raiz, subcategoria, tipo_especifico
+            FROM dbo.vw_fuentes_detalle
+            WHERE id_fuente = ? AND activo_sistema = 1
+        ''', id_fuente)
+        pagina = row_to_dict(cur)
+    if pagina:
+        pagina['enlace_valido_bool'] = bool_for_template(pagina.get('enlace_valido'))
+        pagina['pagina_activa_bool'] = bool_for_template(pagina.get('pagina_activa'))
+        pagina['duplicado_bool'] = bool_for_template(pagina.get('duplicado'))
+    return pagina
+
+
+@app.route('/')
+def inicio():
+    if not require_login():
+        return redirect(url_for('login'))
+    busqueda = request.args.get('q', '').strip()
+    with get_conn() as conn:
+        cur = conn.cursor()
+        if busqueda:
+            cur.execute('''
+                SELECT id_fuente AS id, sitio AS nombre, url_facebook, url_web,
+                       municipio, estado, tipo_fuente, enlace_valido, pagina_activa,
+                       duplicado, estado_validacion, categoria_raiz, subcategoria,
+                       tipo_especifico, agregado_por, fecha_registro AS creado_en
+                FROM dbo.vw_fuentes_detalle
+                WHERE activo_sistema = 1
+                  AND (sitio LIKE ? OR categoria_raiz LIKE ? OR subcategoria LIKE ? OR tipo_especifico LIKE ? OR municipio LIKE ? OR tipo_fuente LIKE ?)
+                ORDER BY sitio
+            ''', *(f'%{busqueda}%' for _ in range(6)))
+        else:
+            cur.execute('''
+                SELECT id_fuente AS id, sitio AS nombre, url_facebook, url_web,
+                       municipio, estado, tipo_fuente, enlace_valido, pagina_activa,
+                       duplicado, estado_validacion, categoria_raiz, subcategoria,
+                       tipo_especifico, agregado_por, fecha_registro AS creado_en
+                FROM dbo.vw_fuentes_detalle
+                WHERE activo_sistema = 1
+                ORDER BY sitio
+            ''')
+        paginas = rows_to_dicts(cur)
+    for p in paginas:
+        p['enlace_valido'] = bool_for_template(p.get('enlace_valido'))
+        p['pagina_activa'] = bool_for_template(p.get('pagina_activa'))
+        p['duplicado'] = bool_for_template(p.get('duplicado'))
+        p['estado_validacion'] = normalize_estado_template(p.get('estado_validacion'))
+    return render_template('index.html', paginas=paginas, busqueda=busqueda)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email'].strip()
+        password = request.form['password'].strip()
+        with get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute('SELECT id, nombre, email, password_hash FROM dbo.usuarios WHERE email = ? AND activo = 1', email)
+            usuario = row_to_dict(cur)
+        if usuario:
+            hash_bd = usuario['password_hash'].encode('utf-8')
+            pass_ingresado = password.encode('utf-8')
+            if bcrypt.checkpw(pass_ingresado, hash_bd):
+                session['usuario'] = usuario['nombre']
+                session['usuario_id'] = usuario['id']
+                flash('Bienvenido ' + usuario['nombre'], 'success')
+                return redirect(url_for('inicio'))
+        flash('Correo o contraseña incorrectos.', 'error')
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+
+@app.route('/agregar', methods=['GET', 'POST'])
+def agregar():
+    if not require_login():
+        return redirect(url_for('login'))
+    nivel1, nivel2, nivel3 = get_categorias_por_nivel()
+    if request.method == 'POST':
+        nombre = request.form['nombre'].strip()
+        url_web = request.form['url_web'].strip() or None
+        url_facebook = request.form['url_facebook'].strip()
+        categoria_id = request.form.get('cat_final') or request.form.get('sel_n3') or request.form.get('sel_n2') or request.form.get('sel_n1')
+        municipio = request.form.get('municipio', '').strip() or None
+        estado_ubi = request.form.get('estado', 'Querétaro').strip() or 'Querétaro'
+        pais = request.form.get('pais', 'México').strip() or 'México'
+        tipo_fuente = request.form.get('tipo_fuente', '').strip() or None
+        enlace_valido = si_no_from_checkbox('enlace_valido')
+        pagina_activa = si_no_from_checkbox('pagina_activa')
+        duplicado = si_no_from_checkbox('duplicado')
+        estado_validacion = request.form.get('estado_validacion', 'Pendiente')
+        observaciones = request.form.get('observaciones', '').strip() or None
+        if not categoria_id:
+            flash('Selecciona una categoría antes de guardar.', 'error')
+            return render_template('agregar.html', nivel1=nivel1, nivel2=nivel2, nivel3=nivel3)
+        try:
+            with get_conn() as conn:
+                cur = conn.cursor()
+                cur.execute('''
+                    EXEC dbo.spCrearFuente
+                        @sitio=?, @url_web=?, @url_facebook=?, @tipo_fuente=?, @id_categoria=?,
+                        @municipio=?, @estado=?, @pais=?, @enlace_valido=?, @pagina_activa=?,
+                        @duplicado=?, @estado_validacion=?, @observaciones=?, @agregado_por=?
+                ''', nombre, url_web, url_facebook, tipo_fuente, int(categoria_id), municipio, estado_ubi, pais,
+                     enlace_valido, pagina_activa, duplicado, estado_validacion, observaciones, session.get('usuario', 'Sistema'))
+                conn.commit()
+            flash('Página registrada correctamente.', 'success')
+            return redirect(url_for('inicio'))
+        except Exception as e:
+            flash(str(e), 'error')
+    return render_template('agregar.html', nivel1=nivel1, nivel2=nivel2, nivel3=nivel3)
+
+
+@app.route('/editar/<int:id>', methods=['GET', 'POST'])
+def editar(id):
+    if not require_login():
+        return redirect(url_for('login'))
+    nivel1, nivel2, nivel3 = get_categorias_por_nivel()
+    if request.method == 'POST':
+        nombre = request.form['nombre'].strip()
+        url_web = request.form['url_web'].strip() or None
+        url_facebook = request.form['url_facebook'].strip()
+        categoria_id = request.form.get('cat_final') or request.form.get('sel_n3') or request.form.get('sel_n2') or request.form.get('sel_n1')
+        municipio = request.form.get('municipio', '').strip() or None
+        estado_ubi = request.form.get('estado', 'Querétaro').strip() or 'Querétaro'
+        pais = request.form.get('pais', 'México').strip() or 'México'
+        tipo_fuente = request.form.get('tipo_fuente', '').strip() or None
+        enlace_valido = si_no_from_checkbox('enlace_valido')
+        pagina_activa = si_no_from_checkbox('pagina_activa')
+        duplicado = si_no_from_checkbox('duplicado')
+        estado_validacion = request.form.get('estado_validacion', 'Pendiente')
+        observaciones = request.form.get('observaciones', '').strip() or None
+        if not categoria_id:
+            flash('Selecciona una categoría antes de actualizar.', 'error')
+        else:
+            try:
+                with get_conn() as conn:
+                    cur = conn.cursor()
+                    cur.execute('''
+                        EXEC dbo.spActualizarFuente
+                            @id_fuente=?, @sitio=?, @url_web=?, @url_facebook=?, @tipo_fuente=?, @id_categoria=?,
+                            @municipio=?, @estado=?, @pais=?, @enlace_valido=?, @pagina_activa=?,
+                            @duplicado=?, @estado_validacion=?, @observaciones=?
+                    ''', id, nombre, url_web, url_facebook, tipo_fuente, int(categoria_id), municipio, estado_ubi, pais,
+                         enlace_valido, pagina_activa, duplicado, estado_validacion, observaciones)
+                    conn.commit()
+                flash('Página actualizada correctamente.', 'success')
+                return redirect(url_for('inicio'))
+            except Exception as e:
+                flash(str(e), 'error')
+    pagina = get_fuente_form(id)
+    if not pagina:
+        flash('El registro no existe o fue eliminado.', 'error')
+        return redirect(url_for('inicio'))
+    return render_template('editar.html', pagina=pagina, nivel1=nivel1, nivel2=nivel2, nivel3=nivel3)
+
+
+@app.route('/eliminar/<int:id>')
+def eliminar(id):
+    if not require_login():
+        return redirect(url_for('login'))
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('EXEC dbo.spEliminarFuente @id_fuente=?', id)
+        conn.commit()
+    flash('Página eliminada correctamente.', 'success')
+    return redirect(url_for('inicio'))
+
+
+@app.route('/arquitectura')
+def arquitectura():
+    if not require_login():
+        return redirect(url_for('login'))
+    return render_template('arquitectura.html')
+
+
+@app.route('/exportar')
+def exportar():
+    if not require_login():
+        return redirect(url_for('login'))
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT sitio AS nombre, url_web, url_facebook, categoria_raiz, subcategoria, tipo_especifico,
+                   municipio, estado, pais, tipo_fuente, enlace_valido, pagina_activa, duplicado,
+                   estado_validacion, agregado_por, fecha_registro AS creado_en
+            FROM dbo.vw_fuentes_detalle
+            WHERE activo_sistema = 1
+            ORDER BY categoria_raiz, subcategoria, tipo_especifico, sitio
+        ''')
+        paginas = rows_to_dicts(cur)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Nombre', 'Sitio Web', 'URL Facebook', 'Categoría raíz', 'Subcategoría', 'Tipo específico', 'Municipio', 'Estado', 'País', 'Tipo fuente', 'Enlace válido', 'Página activa', 'Duplicado', 'Estado validación', 'Agregado por', 'Fecha de registro'])
+    for p in paginas:
+        writer.writerow([p.get('nombre'), p.get('url_web') or '', p.get('url_facebook'), p.get('categoria_raiz'), p.get('subcategoria'), p.get('tipo_especifico'), p.get('municipio'), p.get('estado'), p.get('pais'), p.get('tipo_fuente'), p.get('enlace_valido'), p.get('pagina_activa'), p.get('duplicado'), p.get('estado_validacion'), p.get('agregado_por'), p.get('creado_en')])
+    output.seek(0)
+    return Response(output.getvalue(), mimetype='text/csv; charset=utf-8', headers={'Content-Disposition': 'attachment; filename=SENTINEL_fuentes.csv'})
+
+
+@app.route('/exportar/equipo2.csv')
+def exportar_equipo2_csv():
+    if not require_login():
+        return redirect(url_for('login'))
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('SELECT url_facebook FROM dbo.vw_equipo2_urls ORDER BY url_facebook')
+        urls = rows_to_dicts(cur)
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['url_facebook'])
+    for u in urls:
+        writer.writerow([u['url_facebook']])
+    output.seek(0)
+    return Response(output.getvalue(), mimetype='text/csv; charset=utf-8', headers={'Content-Disposition': 'attachment; filename=SENTINEL_equipo2_urls.csv'})
+
+
+@app.route('/exportar/equipo2.json')
+def exportar_equipo2_json():
+    if not require_login():
+        return redirect(url_for('login'))
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('SELECT url_facebook FROM dbo.vw_equipo2_urls ORDER BY url_facebook')
+        urls = rows_to_dicts(cur)
+    return jsonify(urls)
+
+
+@app.route('/api/equipo2/fuentes')
+def api_equipo2_fuentes():
+    token_required = app.config.get('EQUIPO2_API_TOKEN', '')
+    if token_required and request.args.get('token') != token_required:
+        return jsonify({'error': 'Token inválido'}), 401
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('SELECT url_facebook FROM dbo.vw_equipo2_urls ORDER BY url_facebook')
+        urls = rows_to_dicts(cur)
+    return jsonify({'total': len(urls), 'fuentes': urls})
+
+
+@app.route('/dashboard')
+def dashboard():
+    if not require_login():
+        return redirect(url_for('login'))
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('SELECT COUNT(*) AS total FROM dbo.fuentes WHERE activo_sistema=1')
+        total_paginas = row_to_dict(cur)['total']
+        cur.execute('SELECT COUNT(*) AS total FROM dbo.usuarios WHERE activo=1')
+        total_usuarios = row_to_dict(cur)['total']
+        cur.execute('SELECT COUNT(*) AS total FROM dbo.categorias WHERE activa=1')
+        total_categorias = row_to_dict(cur)['total']
+        cur.execute('''
+            SELECT categoria_raiz AS nombre, COUNT(*) AS total
+            FROM dbo.vw_fuentes_detalle
+            WHERE activo_sistema=1
+            GROUP BY categoria_raiz
+            ORDER BY total DESC
+        ''')
+        por_categoria = rows_to_dicts(cur)
+        cur.execute('''
+            SELECT TOP 8 sitio AS nombre, url_facebook, categoria_raiz AS categoria,
+                   agregado_por, fecha_registro AS creado_en
+            FROM dbo.vw_fuentes_detalle
+            WHERE activo_sistema=1
+            ORDER BY fecha_registro DESC, id_fuente DESC
+        ''')
+        ultimos = rows_to_dicts(cur)
+        cur.execute('''
+            SELECT agregado_por AS nombre, COUNT(*) AS total
+            FROM dbo.vw_fuentes_detalle
+            WHERE activo_sistema=1
+            GROUP BY agregado_por
+            ORDER BY total DESC
+        ''')
+        por_usuario = rows_to_dicts(cur)
+    return render_template('dashboard.html', total_paginas=total_paginas, total_usuarios=total_usuarios, total_categorias=total_categorias, por_categoria=por_categoria, por_usuario=por_usuario, ultimos=ultimos)
+
+
+@app.route('/jerarquia')
+def jerarquia():
+    if not require_login():
+        return redirect(url_for('login'))
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute('''
+            SELECT n1.nombre_categoria AS categoria_raiz,
+                   n2.nombre_categoria AS subcategoria,
+                   n3.nombre_categoria AS tipo_especifico,
+                   n3.id_categoria AS codigo
+            FROM dbo.categorias n1
+            LEFT JOIN dbo.categorias n2 ON n2.id_padre = n1.id_categoria AND n2.nivel = 2 AND n2.activa = 1
+            LEFT JOIN dbo.categorias n3 ON n3.id_padre = n2.id_categoria AND n3.nivel = 3 AND n3.activa = 1
+            WHERE n1.nivel = 1 AND n1.activa = 1
+            ORDER BY n1.nombre_categoria, n2.nombre_categoria, n3.nombre_categoria
+        ''')
+        datos = rows_to_dicts(cur)
+    return render_template('jerarquia.html', datos=datos)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', '5000')), debug=True)

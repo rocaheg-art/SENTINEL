@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SENTINEL - Arquitectura</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #161b22 !important; border-bottom: 1px solid #30363d; }
+        .navbar-brand { color: #58a6ff !important; font-weight: 700; font-size: 22px; letter-spacing: 2px; }
+        .titulo-seccion { color: #58a6ff; font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+        .subtitulo { color: #8b949e; font-size: 14px; margin-bottom: 30px; }
+
+        /* Diagrama */
+        .diagrama { display: flex; flex-direction: column; align-items: center; gap: 0; }
+        .capa { width: 100%; max-width: 750px; border-radius: 10px; padding: 18px 24px; margin-bottom: 0; }
+        .capa-usuario  { background: #1f3a5f; border: 1px solid #58a6ff; }
+        .capa-frontend { background: #1a3a2a; border: 1px solid #3fb950; }
+        .capa-backend  { background: #3a2a10; border: 1px solid #e3b341; }
+        .capa-bd       { background: #2a1a3a; border: 1px solid #a371f7; }
+        .capa-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+        .capa-titulo { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+        .capa-desc { font-size: 13px; color: #8b949e; }
+        .capa-items { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .chip { background: #21262d; border: 0.5px solid #30363d; border-radius: 20px; padding: 4px 12px; font-size: 12px; }
+        .flecha { font-size: 28px; color: #484f58; margin: 4px 0; text-align: center; width: 100%; max-width: 750px; }
+
+        /* Frontend vs Backend */
+        .comparacion { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; margin: 0 auto; }
+        .col-card { background: #161b22; border: 0.5px solid #30363d; border-radius: 12px; padding: 24px; }
+        .col-titulo { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        .item-lista { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; font-size: 13px; color: #c9d1d9; }
+        .item-lista i { margin-top: 2px; flex-shrink: 0; }
+
+        /* Mockup */
+        .mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .mockup-card { background: #161b22; border: 0.5px solid #30363d; border-radius: 12px; overflow: hidden; }
+        .mockup-header { background: #21262d; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .mockup-body { padding: 16px; }
+        .mock-titulo { font-size: 16px; font-weight: 600; color: #58a6ff; margin-bottom: 12px; }
+        .mock-barra { background: #21262d; border-radius: 6px; height: 36px; margin-bottom: 12px; display: flex; align-items: center; padding: 0 12px; color: #484f58; font-size: 13px; }
+        .mock-tabla-header { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; background: #21262d; padding: 8px 10px; border-radius: 6px 6px 0 0; font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+        .mock-fila { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #21262d; font-size: 12px; }
+        .mock-badge { background: #1f3a5f; color: #58a6ff; border-radius: 20px; padding: 2px 8px; font-size: 11px; display: inline-block; }
+        .mock-btn { background: #238636; border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 13px; width: 100%; margin-top: 10px; }
+        .mock-input { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 8px 12px; color: #c9d1d9; font-size: 13px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        .mock-label { font-size: 11px; color: #8b949e; margin-bottom: 4px; display: block; }
+        .nav-tabs-mock { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid #30363d; padding-bottom: 0; }
+        .tab-mock { padding: 6px 14px; font-size: 13px; color: #8b949e; border-bottom: 2px solid transparent; }
+        .tab-mock.active { color: #58a6ff; border-bottom-color: #58a6ff; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/"><i class="bi bi-shield-fill"></i> SENTINEL</a>
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" style="color:#8b949e; text-decoration:none; font-size:14px;"><i class="bi bi-arrow-left"></i> Volver</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- ─── SECCIÓN 1: DIAGRAMA DE ARQUITECTURA ─── -->
+    <div class="mb-5">
+        <p class="titulo-seccion"><i class="bi bi-diagram-3"></i> Diagrama de Arquitectura del Sistema</p>
+        <p class="subtitulo">Cómo se conectan los componentes de SENTINEL</p>
+
+        <div class="diagrama mx-auto">
+
+            <div class="capa capa-usuario">
+                <div class="capa-label" style="color:#58a6ff">Capa de Usuario</div>
+                <div class="capa-titulo"><i class="bi bi-person-circle"></i> Usuario Final</div>
+                <div class="capa-desc">Accede al sistema desde cualquier navegador web</div>
+                <div class="capa-items">
+                    <span class="chip">Chrome</span>
+                    <span class="chip">Edge</span>
+                    <span class="chip">Firefox</span>
+                </div>
+            </div>
+
+            <div class="flecha">↕</div>
+
+            <div class="capa capa-frontend">
+                <div class="capa-label" style="color:#3fb950">Capa de Presentación (Frontend)</div>
+                <div class="capa-titulo"><i class="bi bi-layout-text-window"></i> HTML + Bootstrap 5</div>
+                <div class="capa-desc">Interfaz visual que ve el usuario: tablas, formularios, buscador</div>
+                <div class="capa-items">
+                    <span class="chip">index.html</span>
+                    <span class="chip">login.html</span>
+                    <span class="chip">agregar.html</span>
+                    <span class="chip">editar.html</span>
+                </div>
+            </div>
+
+            <div class="flecha">↕</div>
+
+            <div class="capa capa-backend">
+                <div class="capa-label" style="color:#e3b341">Capa de Lógica (Backend)</div>
+                <div class="capa-titulo"><i class="bi bi-cpu"></i> Python + Flask</div>
+                <div class="capa-desc">Procesa las peticiones, aplica validaciones y gestiona sesiones</div>
+                <div class="capa-items">
+                    <span class="chip">app.py</span>
+                    <span class="chip">config.py</span>
+                    <span class="chip">bcrypt</span>
+                    <span class="chip">flask-mysqldb</span>
+                </div>
+            </div>
+
+            <div class="flecha">↕</div>
+
+            <div class="capa capa-bd">
+                <div class="capa-label" style="color:#a371f7">Capa de Datos</div>
+                <div class="capa-titulo"><i class="bi bi-database"></i> MySQL</div>
+                <div class="capa-desc">Almacena todos los registros de páginas, usuarios, categorías y roles</div>
+                <div class="capa-items">
+                    <span class="chip">paginas</span>
+                    <span class="chip">usuarios</span>
+                    <span class="chip">categorias</span>
+                    <span class="chip">roles</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr style="border-color:#30363d; margin: 40px 0;">
+
+    
+    <div class="mb-5">
+        <p class="titulo-seccion"><i class="bi bi-arrow-left-right"></i> Frontend vs Backend en SENTINEL</p>
+        <p class="subtitulo">La división de responsabilidades en el sistema</p>
+
+        <div class="comparacion">
+            <div class="col-card">
+                <div class="col-titulo" style="color:#3fb950"><i class="bi bi-display"></i> Frontend</div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#3fb950"></i><span>Lo que <strong>ve</strong> el usuario en el navegador</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#3fb950"></i><span>Tablas con los registros de páginas oficiales</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#3fb950"></i><span>Formularios para registrar y editar páginas</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#3fb950"></i><span>Buscador por nombre y categoría</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#3fb950"></i><span>Pantalla de login para iniciar sesión</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#3fb950"></i><span>Mensajes de error y confirmación</span></div>
+                <div style="margin-top:16px; font-size:12px; color:#8b949e;">Tecnologías: HTML, CSS, Bootstrap 5</div>
+            </div>
+            <div class="col-card">
+                <div class="col-titulo" style="color:#e3b341"><i class="bi bi-server"></i> Backend</div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#e3b341"></i><span>Lo que <strong>procesa</strong> el servidor internamente</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#e3b341"></i><span>Verifica si una URL ya existe antes de guardar</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#e3b341"></i><span>Encripta contraseñas con bcrypt</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#e3b341"></i><span>Gestiona sesiones de usuario activo</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#e3b341"></i><span>Ejecuta consultas SELECT, INSERT, UPDATE en MySQL</span></div>
+                <div class="item-lista"><i class="bi bi-check-circle-fill" style="color:#e3b341"></i><span>Protege rutas para usuarios no autenticados</span></div>
+                <div style="margin-top:16px; font-size:12px; color:#8b949e;">Tecnologías: Python, Flask, flask-mysqldb</div>
+            </div>
+        </div>
+    </div>
+
+    <hr style="border-color:#30363d; margin: 40px 0;">
+
+    
+    <div class="mb-5">
+        <p class="titulo-seccion"><i class="bi bi-grid-1x2"></i> Diseño de Pantallas (Mockup)</p>
+        <p class="subtitulo">Vista previa del diseño de las principales pantallas de SENTINEL</p>
+
+        <div class="mockup-grid">
+
+            <!-- Login -->
+            <div class="mockup-card">
+                <div class="mockup-header">
+                    <div class="dot" style="background:#f85149"></div>
+                    <div class="dot" style="background:#e3b341"></div>
+                    <div class="dot" style="background:#3fb950"></div>
+                    <span style="font-size:12px; color:#8b949e; margin-left:8px;">Login — SENTINEL</span>
+                </div>
+                <div class="mockup-body" style="text-align:center; padding:24px;">
+                    <div style="font-size:32px; color:#58a6ff; margin-bottom:8px;"><i class="bi bi-shield-fill"></i></div>
+                    <div style="font-size:18px; font-weight:700; color:#58a6ff; margin-bottom:4px;">SENTINEL</div>
+                    <div style="font-size:12px; color:#8b949e; margin-bottom:20px;">Sistema de páginas oficiales</div>
+                    <span class="mock-label">Correo electrónico</span>
+                    <input class="mock-input" placeholder="tu@correo.com" readonly>
+                    <span class="mock-label">Contraseña</span>
+                    <input class="mock-input" placeholder="••••••••" type="password" readonly>
+                    <button class="mock-btn"><i class="bi bi-box-arrow-in-right"></i> Iniciar sesión</button>
+                </div>
+            </div>
+
+            <!-- Lista principal -->
+            <div class="mockup-card">
+                <div class="mockup-header">
+                    <div class="dot" style="background:#f85149"></div>
+                    <div class="dot" style="background:#e3b341"></div>
+                    <div class="dot" style="background:#3fb950"></div>
+                    <span style="font-size:12px; color:#8b949e; margin-left:8px;">Inicio — SENTINEL</span>
+                </div>
+                <div class="mockup-body">
+                    <div class="mock-titulo"><i class="bi bi-shield-fill"></i> SENTINEL</div>
+                    <div class="mock-barra"><i class="bi bi-search" style="margin-right:8px;"></i> Buscar por nombre o categoría...</div>
+                    <div class="mock-tabla-header">
+                        <span>Nombre</span><span>Categoría</span><span>Acciones</span>
+                    </div>
+                    <div class="mock-fila">
+                        <span>Gobierno Qro</span>
+                        <span><span class="mock-badge">Gobierno</span></span>
+                        <span style="color:#e3b341; font-size:11px;">Editar</span>
+                    </div>
+                    <div class="mock-fila">
+                        <span>Diario de Qro</span>
+                        <span><span class="mock-badge">Noticias</span></span>
+                        <span style="color:#e3b341; font-size:11px;">Editar</span>
+                    </div>
+                    <div class="mock-fila">
+                        <span>SSP Querétaro</span>
+                        <span><span class="mock-badge">Gobierno</span></span>
+                        <span style="color:#e3b341; font-size:11px;">Editar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agregar página -->
+            <div class="mockup-card">
+                <div class="mockup-header">
+                    <div class="dot" style="background:#f85149"></div>
+                    <div class="dot" style="background:#e3b341"></div>
+                    <div class="dot" style="background:#3fb950"></div>
+                    <span style="font-size:12px; color:#8b949e; margin-left:8px;">Registrar — SENTINEL</span>
+                </div>
+                <div class="mockup-body">
+                    <div class="mock-titulo"><i class="bi bi-plus-circle"></i> Registrar nueva página</div>
+                    <span class="mock-label">Nombre de la página</span>
+                    <input class="mock-input" placeholder="Ej: Gobierno de Querétaro" readonly>
+                    <span class="mock-label">URL de Facebook</span>
+                    <input class="mock-input" placeholder="https://facebook.com/..." readonly>
+                    <span class="mock-label">Categoría</span>
+                    <input class="mock-input" placeholder="-- Selecciona --" readonly>
+                    <button class="mock-btn"><i class="bi bi-check-lg"></i> Registrar página</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

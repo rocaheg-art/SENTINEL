@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block titulo %}Dashboard{% endblock %}
+{% block contenido %}
+
+<div class="page-header">
+    <div class="page-title"><i class="bi bi-speedometer2" style="color:var(--blue)"></i> Dashboard</div>
+    <div class="page-subtitle">Estadísticas generales de SENTINEL</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card stat-blue">
+            <div class="stat-number" style="color:var(--blue)">{{ total_paginas }}</div>
+            <div class="stat-label"><i class="bi bi-globe"></i> Total de páginas</div>
+            <div class="stat-icon"><i class="bi bi-globe"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-green">
+            <div class="stat-number" style="color:var(--green)">{{ total_categorias }}</div>
+            <div class="stat-label"><i class="bi bi-tags"></i> Categorías</div>
+            <div class="stat-icon"><i class="bi bi-tags"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-purple">
+            <div class="stat-number" style="color:var(--purple)">{{ total_usuarios }}</div>
+            <div class="stat-label"><i class="bi bi-people"></i> Usuarios activos</div>
+            <div class="stat-icon"><i class="bi bi-people"></i></div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-yellow">
+            <div class="stat-number" style="color:var(--yellow)">
+                {{ ((por_categoria[0].total / total_paginas) * 100) | round(0) | int if total_paginas > 0 else 0 }}%
+            </div>
+            <div class="stat-label"><i class="bi bi-bar-chart"></i> {{ por_categoria[0].nombre if por_categoria else '-' }}</div>
+            <div class="stat-icon"><i class="bi bi-bar-chart"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-7">
+        <div class="card-sentinel p-4">
+            <div style="font-size:15px; font-weight:600; margin-bottom:4px;">Páginas por categoría</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Distribución de registros</div>
+            <canvas id="barChart" height="120"></canvas>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card-sentinel p-4">
+            <div style="font-size:15px; font-weight:600; margin-bottom:4px;">Distribución general</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Porcentaje por categoría</div>
+            <canvas id="pieChart" height="160"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Ranking + Últimos -->
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card-sentinel p-4" style="height:100%">
+            <div style="font-size:15px; font-weight:600; margin-bottom:4px;">Ranking por categoría</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:20px;">Páginas en cada categoría</div>
+            {% set max_val = por_categoria[0].total if por_categoria else 1 %}
+            {% for cat in por_categoria %}
+            <div style="margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;">
+                    <span>{{ cat.nombre }}</span>
+                    <span style="color:var(--blue); font-weight:600;">{{ cat.total }}</span>
+                </div>
+                <div style="background:#21262d; border-radius:10px; height:8px; overflow:hidden;">
+                    <div style="width:{{ (cat.total / max_val * 100) | round(0) | int }}%;
+                                height:100%; border-radius:10px;
+                                background:{% if loop.index == 1 %}var(--blue){% elif loop.index == 2 %}var(--green){% elif loop.index == 3 %}var(--yellow){% elif loop.index == 4 %}var(--red){% else %}var(--purple){% endif %};
+                                transition: width 1s ease;">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="tabla-container">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border); font-size:15px; font-weight:600;">
+                <i class="bi bi-clock-history" style="color:var(--blue)"></i> Últimos registros
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Agregado por</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in ultimos %}
+                    <tr>
+                        <td>
+                            <a href="{{ p.url_facebook }}" target="_blank" style="color:var(--text-main); text-decoration:none;">
+                                <i class="bi bi-facebook" style="color:var(--blue); margin-right:6px;"></i>
+                                {{ p.nombre[:35] }}{% if p.nombre|length > 35 %}...{% endif %}
+                            </a>
+                        </td>
+                        <td><span class="badge-cat">{{ p.categoria }}</span></td>
+                        <td><span class="badge-user"><i class="bi bi-person"></i> {{ p.agregado_por }}</span></td>
+                        <td style="color:var(--text-muted); font-size:12px;">
+                            {{ p.creado_en.strftime('%d/%m/%Y') if p.creado_en else '-' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+const categorias = {{ por_categoria | map(attribute='nombre') | list | tojson }};
+const totales    = {{ por_categoria | map(attribute='total')  | list | tojson }};
+const colores = ['#58a6ff','#3fb950','#e3b341','#f85149','#a371f7','#79c0ff','#56d364','#ffa657','#ff7b72','#d2a8ff'];
+
+new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+        labels: categorias,
+        datasets: [{ label: 'Páginas', data: totales, backgroundColor: colores, borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+            y: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' }, beginAtZero: true }
+        }
+    }
+});
+
+new Chart(document.getElementById('pieChart'), {
+    type: 'doughnut',
+    data: {
+        labels: categorias,
+        datasets: [{ data: totales, backgroundColor: colores, borderColor: '#161b22', borderWidth: 3 }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', font: { size: 11 }, padding: 12 } } }
+    }
+});
+</script>
+{% endblock %}
