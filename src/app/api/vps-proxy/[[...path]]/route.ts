@@ -28,7 +28,9 @@ async function handleProxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const path = pathname.replace(/^\/api\/vps-proxy/, "");
   
-  const targetUrl = `${VPS_BACKEND}/api${path}${search}`;
+  // If path starts with "/api", use it directly. Otherwise prefix with "/api".
+  const cleanPath = path.startsWith("/api") ? path : `/api${path}`;
+  const targetUrl = `${VPS_BACKEND}${cleanPath}${search}`;
 
   const headers = new Headers();
   req.headers.forEach((value, key) => {
