@@ -28,9 +28,8 @@ async function handleProxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const path = pathname.replace(/^\/api\/vps-proxy/, "");
   
-  // El VPS corre su API de Python en el puerto 8000.
-  // Replicamos el puente server-to-server directo.
-  const targetUrl = `http://217.77.2.96:8000/api${path}${search}`;
+  // El VPS corre Nginx en el puerto 80 para redirigir peticiones a la API.
+  const targetUrl = `http://217.77.2.96/api${path}${search}`;
 
   const headers = new Headers();
   req.headers.forEach((value, key) => {
