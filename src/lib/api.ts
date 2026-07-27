@@ -4,10 +4,9 @@ const getApiBaseUrl = () => {
   }
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    // If running in Render/Vercel production deployment
+    // Connect directly to the production backend server in the cloud (no proxy routes)
     if (hostname.includes("onrender.com") || hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
-      // Connect through Next.js secure server-side API proxy to bypass Mixed Content blocking
-      return "/api/vps-proxy";
+      return "https://sentinel-faf0.onrender.com";
     }
     // Dynamic IP mapping for local network devices
     return `http://${hostname}:8000`;
