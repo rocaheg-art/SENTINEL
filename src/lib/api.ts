@@ -6,8 +6,8 @@ const getApiBaseUrl = () => {
     const hostname = window.location.hostname;
     // If running in Render/Vercel production deployment
     if (hostname.includes("onrender.com") || hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
-      // Connect to the external VPS Python backend API
-      return "http://217.77.2.96";
+      // Connect to the external VPS Python backend API via HTTPS to prevent Mixed Content blocking
+      return "https://217.77.2.96";
     }
     // Dynamic IP mapping for local network devices
     return `http://${hostname}:8000`;
