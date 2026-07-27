@@ -9,9 +9,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sentinel_db")
 
 class Settings(BaseSettings):
-    # Default to cloud PostgreSQL values to avoid local configuration overrides in cloud environments
-    DB_HOST: str = "89.117.148.156"
-    DB_PORT: int = 5433
+    # Default to cloud PostgreSQL values (Internal VPS Network IP)
+    DB_HOST: str = "10.16.3.122"
+    DB_PORT: int = 5432
     DB_USER: str = "sentinel"
     DB_PASSWORD: str = "sentinel_local"
     DB_NAME: str = "sentinel"
