@@ -94,7 +94,7 @@ const getApiBase = () => {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
     if (hostname.includes("onrender.com") || hostname.includes("vercel.app") || hostname.includes("sentinel-web")) {
-      return "https://217.77.2.96";
+      return "/api/vps-proxy";
     }
     return `http://${hostname}:8000`;
   }
