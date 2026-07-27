@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MOCK_CATEGORIAS } from "@/lib/mockDb";
 
 const MAU_BASE = process.env.SENTINEL_MAU_URL || "http://127.0.0.1:5001";
 
 export async function GET() {
   try {
-    const res = await fetch(`${MAU_BASE}/api/categorias`, { next: { revalidate: 10 } });
+    const res = await fetch(`${MAU_BASE}/api/categorias`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
     const data = await res.json();
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json(MOCK_CATEGORIAS);
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "mau_offline", message: err.message || "No se pudo obtener las categorías de la base de datos." },
+      { status: 503 }
+    );
   }
 }
 
@@ -23,8 +26,11 @@ export async function POST(req: NextRequest) {
     });
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
-  } catch {
-    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "mau_offline", message: err.message || "No se pudo registrar la categoría." },
+      { status: 503 }
+    );
   }
 }
 

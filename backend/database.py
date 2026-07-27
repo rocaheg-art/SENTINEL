@@ -54,7 +54,15 @@ async def init_db():
             connect_args["ssl"] = ctx
             logger.info("Enabling SSL context for PostgreSQL.")
             
-        temp_engine = create_async_engine(pg_url, echo=False, connect_args=connect_args)
+        temp_engine = create_async_engine(
+            pg_url, 
+            echo=False, 
+            connect_args=connect_args,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            pool_size=10,
+            max_overflow=20
+        )
         async with temp_engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         from models import Base
